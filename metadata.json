@@ -1,0 +1,10 @@
+{
+  "name": "Pulse",
+  "description": "Consent-first, time-boxed location sharing for close circles with live map, pings, and memory pins.",
+  "requestFramePermissions": [
+    "geolocation"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
