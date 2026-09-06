@@ -13,11 +13,11 @@ export const MapOverlayActions: React.FC<MapOverlayActionsProps> = ({
   onOpenMemoryPinModal,
 }) => {
   return (
-    <div className="absolute bottom-20 md:bottom-8 left-1/2 -translate-x-1/2 z-[1000] flex items-center gap-1 p-1.5 bg-white/90 border border-black/8 backdrop-blur-xl rounded-full shadow-xl max-w-[calc(100%-1.5rem)]">
+    <div className="absolute bottom-20 md:bottom-6 left-3 right-3 md:left-auto md:right-6 md:translate-x-0 z-[1000] flex items-center gap-1 p-1.5 bg-white border border-black/10 rounded-[18px] shadow-xl md:w-auto">
       <button
         type="button"
         onClick={onOpenShareModal}
-        className="flex items-center gap-2 px-4 py-2.5 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-medium rounded-full"
+        className="ui-primary-button flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-3 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-semibold rounded-[13px]"
       >
         <Share2 className="w-4 h-4" />
         <span className="hidden xs:inline sm:inline">Share</span>
@@ -25,7 +25,7 @@ export const MapOverlayActions: React.FC<MapOverlayActionsProps> = ({
       <button
         type="button"
         onClick={onOpenPingModal}
-        className="flex items-center gap-2 px-3 py-2.5 text-zinc-800 text-xs font-medium rounded-full hover:bg-zinc-100"
+        className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-3 text-zinc-800 text-xs font-medium rounded-[13px] hover:bg-zinc-100"
         aria-label="Send ping"
       >
         <Zap className="w-4 h-4" />
@@ -34,7 +34,7 @@ export const MapOverlayActions: React.FC<MapOverlayActionsProps> = ({
       <button
         type="button"
         onClick={onOpenMemoryPinModal}
-        className="flex items-center gap-2 px-3 py-2.5 text-zinc-800 text-xs font-medium rounded-full hover:bg-zinc-100"
+        className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-3 text-zinc-800 text-xs font-medium rounded-[13px] hover:bg-zinc-100"
         aria-label="Add memory pin"
       >
         <MapPin className="w-4 h-4" />

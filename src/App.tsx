@@ -70,14 +70,17 @@ export default function App() {
 
   if (isBooting) {
     return (
-      <div className="min-h-dvh bg-[#f7f6f3] flex items-center justify-center text-zinc-500 text-sm">
-        Loading Pulse…
+      <div className="min-h-dvh flex flex-col items-center justify-center gap-3 text-zinc-500 text-sm">
+        <span className="w-10 h-10 rounded-[14px] bg-zinc-900 text-white flex items-center justify-center shadow-lg shadow-zinc-900/15">
+          <span className="w-2 h-2 rounded-full bg-sky-400 animate-pulse" />
+        </span>
+        <span className="font-medium tracking-tight">Loading Pulse</span>
       </div>
     );
   }
 
   return (
-    <div className="min-h-dvh bg-[#f7f6f3] text-zinc-900 flex flex-col font-sans selection:bg-zinc-900 selection:text-white">
+    <div className="min-h-dvh text-zinc-900 flex flex-col font-sans selection:bg-blue-500/20 selection:text-zinc-950">
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -95,8 +98,8 @@ export default function App() {
       )}
 
       <main
-        className={`flex-1 relative overflow-x-hidden ${
-          activeTab !== 'map' ? 'pb-24 md:pb-8' : 'pb-16 md:pb-0'
+        className={`pulse-page flex-1 relative overflow-x-hidden ${
+          activeTab !== 'map' ? 'pb-24 md:pb-8' : 'pb-0'
         }`}
       >
         {activeTab === 'map' && (

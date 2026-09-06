@@ -69,7 +69,7 @@ export const RegisterAccountModal: React.FC<RegisterAccountModalProps> = ({
         onClick={required ? undefined : onClose}
       />
 
-      <div className="relative w-full max-w-md bg-white text-zinc-900 rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl z-10 border border-black/5">
+      <div className="pulse-modal relative w-full max-w-md bg-white text-zinc-900 rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl z-10 border border-black/5">
         <div className="flex items-start justify-between mb-6">
           <div>
             <div className="w-10 h-10 rounded-full bg-zinc-900 text-white flex items-center justify-center mb-3">
@@ -168,7 +168,7 @@ export const RegisterAccountModal: React.FC<RegisterAccountModalProps> = ({
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-3 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-50 text-white text-sm font-medium rounded-2xl"
+            className="ui-primary-button w-full py-3 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-50 text-white text-sm font-medium rounded-2xl"
           >
             {isSubmitting ? 'Please wait…' : mode === 'login' ? 'Sign in' : 'Create account'}
           </button>

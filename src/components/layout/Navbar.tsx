@@ -59,25 +59,25 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <>
-      <header className="sticky top-0 z-[1100] bg-[#f7f6f3]/85 backdrop-blur-xl border-b border-black/5">
-        <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
+      <header className="sticky top-0 z-[1100] md:fixed md:inset-y-0 md:left-0 md:w-24 md:border-r md:border-b-0 bg-[#f7f7f4] border-b border-black/[0.08]">
+        <div className="max-w-6xl mx-auto px-4 h-[4.25rem] md:h-full md:px-3 md:py-6 md:flex-col md:justify-start flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <button
               type="button"
               onClick={() => setActiveTab('map')}
-              className="flex items-center gap-2.5 shrink-0"
+              className="flex items-center gap-2.5 shrink-0 group"
             >
-              <span className="w-8 h-8 rounded-full bg-zinc-900 text-white flex items-center justify-center">
-                <Radio className="w-3.5 h-3.5" />
+              <span className="w-10 h-10 rounded-[14px] bg-[#111318] text-white flex items-center justify-center md:group-hover:scale-105 transition-transform">
+                <Radio className="w-4 h-4 text-sky-300" />
               </span>
-              <span className="font-semibold tracking-tight text-zinc-900">Pulse</span>
+              <span className="font-semibold tracking-[-0.02em] text-zinc-900 md:hidden">Pulse</span>
             </button>
 
-            <div className="relative hidden sm:block" ref={circleDropdownRef}>
+            <div className="relative hidden sm:block md:hidden" ref={circleDropdownRef}>
               <button
                 type="button"
                 onClick={() => setIsCircleDropdownOpen((open) => !open)}
-                className="flex items-center gap-2 max-w-[180px] px-3 py-1.5 rounded-full bg-white border border-black/8 text-xs font-medium text-zinc-700"
+                className="flex items-center gap-2 max-w-[180px] px-3.5 py-2 rounded-full bg-white/70 border border-black/[0.07] shadow-sm text-xs font-medium text-zinc-700 hover:bg-white transition-colors"
               >
                 <span className="truncate">{activeCircle?.name || 'No circle'}</span>
                 <ChevronDown className={`w-3.5 h-3.5 text-zinc-400 ${isCircleDropdownOpen ? 'rotate-180' : ''}`} />
@@ -111,7 +111,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
           </div>
 
-          <nav className="hidden md:flex items-center gap-1 p-1 rounded-full bg-white border border-black/8">
+          <nav className="hidden md:flex md:flex-col items-center gap-2 p-0 md:mt-auto md:mb-auto">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const active = activeTab === tab.id;
@@ -120,8 +120,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                    active ? 'bg-zinc-900 text-white' : 'text-zinc-500 hover:text-zinc-900'
+                    className={`flex items-center justify-center gap-2 px-2 py-2.5 rounded-[13px] text-xs font-medium transition-all md:flex-col md:w-[4.5rem] ${
+                    active ? 'bg-[#111318] text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-900 hover:bg-black/[0.04]'
                   }`}
                 >
                   <Icon className="w-3.5 h-3.5" />
@@ -131,11 +131,11 @@ export const Navbar: React.FC<NavbarProps> = ({
             })}
           </nav>
 
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 md:flex-col md:mt-auto">
             <button
               type="button"
               onClick={onOpenNotifications}
-              className="relative w-9 h-9 rounded-full bg-white border border-black/8 text-zinc-700 flex items-center justify-center"
+              className="relative w-11 h-11 md:w-9 md:h-9 rounded-full bg-white/70 border border-black/[0.07] shadow-sm text-zinc-700 flex items-center justify-center hover:bg-white transition-colors"
               aria-label="Notifications"
             >
               <Bell className="w-4 h-4" />
@@ -148,7 +148,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               type="button"
               onClick={onOpenSettings}
-              className="w-9 h-9 rounded-full bg-white border border-black/8 text-zinc-700 flex items-center justify-center"
+              className="w-11 h-11 md:w-9 md:h-9 rounded-full bg-white/70 border border-black/[0.07] shadow-sm text-zinc-700 flex items-center justify-center hover:bg-white transition-colors"
               aria-label="Settings"
             >
               <Settings className="w-4 h-4" />
@@ -156,7 +156,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               type="button"
               onClick={onOpenSettings}
-              className={`w-9 h-9 rounded-full ${currentUser?.avatarColor || 'bg-zinc-800'} text-white text-[11px] font-semibold flex items-center justify-center`}
+              className={`w-11 h-11 md:w-9 md:h-9 rounded-full ${currentUser?.avatarColor || 'bg-zinc-800'} text-white text-[11px] font-semibold flex items-center justify-center`}
               aria-label="Account"
             >
               {getInitials(currentUser?.displayName)}
@@ -165,8 +165,8 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
       </header>
 
-      <nav className="md:hidden fixed bottom-0 inset-x-0 z-[1100] bg-[#f7f6f3]/95 backdrop-blur-xl border-t border-black/5 pb-[env(safe-area-inset-bottom)]">
-        <div className="grid grid-cols-4 h-16">
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-[1100] bg-[#f7f7f4] border-t border-black/[0.08] pb-[env(safe-area-inset-bottom)]">
+        <div className="grid grid-cols-4 h-[4.5rem] px-2">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const active = activeTab === tab.id;
@@ -175,8 +175,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex flex-col items-center justify-center gap-1 text-[10px] font-medium ${
-                  active ? 'text-zinc-900' : 'text-zinc-400'
+                className={`flex flex-col items-center justify-center gap-1.5 my-1 rounded-[14px] text-[10px] font-medium transition-colors ${
+                  active ? 'bg-zinc-900 text-white' : 'text-zinc-400 hover:text-zinc-900'
                 }`}
               >
                 <Icon className="w-5 h-5" />

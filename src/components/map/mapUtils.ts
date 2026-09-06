@@ -21,6 +21,21 @@ export function applyMapTiles(map: L.Map, tileMode: 'dark' | 'street') {
   map.getContainer().classList.toggle('pulse-dark-tiles', tileMode === 'dark');
 }
 
+export function getMemoryPinIconSvg(value?: string): string {
+  const icon = value || 'pin';
+  const paths: Record<string, string> = {
+    pin: '<path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/>',
+    home: '<path d="m3 10 9-7 9 7"/><path d="M5 9v11h14V9"/><path d="M9 20v-6h6v6"/>',
+    coffee: '<path d="M5 8h11v6a5 5 0 0 1-5 5H10a5 5 0 0 1-5-5V8Z"/><path d="M16 10h2a3 3 0 0 1 0 6h-2M8 4c0 1 1 1 1 2M12 4c0 1 1 1 1 2"/>',
+    heart: '<path d="M20.8 8.8c0 5.2-8.8 10.4-8.8 10.4S3.2 14 3.2 8.8A4.8 4.8 0 0 1 12 6.2a4.8 4.8 0 0 1 8.8 2.6Z"/>',
+    beach: '<path d="M3 19c4-3 6-3 9 0s5 3 9 0"/><path d="M12 18V5M8 9c2-2 6-2 8 0M6 5c2-2 4-2 6 0 2-2 4-2 6 0"/>',
+    food: '<path d="M6 3v8M3 3v5a3 3 0 0 0 6 0V3M6 11v10M16 3v18M16 3c3 2 3 6 0 8"/>',
+    celebration: '<path d="m4 20 8-8M9 21l3-9 4 5 5-3-3 5 4 1-9 1Z"/><path d="M5 4v3M3.5 5.5h3M18 3v3M16.5 4.5h3"/>',
+    car: '<path d="m5 16 1.5-6h11L19 16M4 16h16v4H4zM7 20v2M17 20v2M7 14h.01M17 14h.01"/>',
+  };
+  return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[icon] || paths.pin}</svg>`;
+}
+
 export function createDeviceGpsIcon(): L.DivIcon {
   return L.divIcon({
     className: 'custom-div-icon',
@@ -51,7 +66,7 @@ export function createLocationShareIcon(share: LocationShare, isSelf: boolean): 
             ${initials}
           </div>
         </div>
-        <div class="mt-1 px-2 py-0.5 bg-slate-900/90 backdrop-blur-md border border-white/10 rounded-full text-[10px] font-semibold text-white shadow-lg flex items-center gap-1">
+        <div class="mt-1 px-2 py-0.5 bg-white border border-black/10 rounded-full text-[10px] font-semibold text-zinc-800 shadow-lg flex items-center gap-1">
           <span class="w-1.5 h-1.5 rounded-full ${isSelf ? 'bg-emerald-400' : 'bg-indigo-400'} animate-pulse"></span>
           ${isSelf ? 'You' : firstName}
           ${label ? ` • ${label}` : ''}
@@ -69,10 +84,10 @@ export function createMemoryPinIcon(pin: MemoryPin): L.DivIcon {
     className: 'custom-pulse-marker',
     html: `
       <div class="relative flex flex-col items-center group cursor-pointer">
-        <div class="w-9 h-9 rounded-2xl bg-amber-500/90 backdrop-blur-md border-2 border-white text-white font-bold text-lg flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
-          ${escapeHtml(pin.emoji || '📍')}
+        <div class="w-9 h-9 rounded-xl bg-white border border-black/15 text-zinc-800 flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
+          ${getMemoryPinIconSvg(pin.emoji)}
         </div>
-        <div class="mt-1 px-2 py-0.5 bg-amber-950/90 backdrop-blur-md border border-amber-500/30 rounded-full text-[10px] font-semibold text-amber-200 shadow-lg truncate max-w-[100px]">
+        <div class="mt-1 px-2 py-0.5 bg-white border border-black/10 rounded-full text-[10px] font-semibold text-zinc-800 shadow-lg truncate max-w-[100px]">
           ${escapeHtml(pin.caption)}
         </div>
       </div>
@@ -91,10 +106,10 @@ export function createPingIcon(ping: Ping): L.DivIcon {
         <div class="relative">
           <span class="animate-ping absolute -inset-1 rounded-full bg-rose-500 opacity-75"></span>
           <div class="relative w-9 h-9 rounded-full bg-rose-600 text-white font-bold text-xs flex items-center justify-center border-2 border-white shadow-xl">
-            ⚡
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="m13 2-9 12h7l-1 8 9-12h-7l1-8Z"/></svg>
           </div>
         </div>
-        <div class="mt-1 px-2 py-0.5 bg-rose-950/90 backdrop-blur-md border border-rose-500/30 rounded-full text-[10px] font-semibold text-rose-200 shadow-lg truncate max-w-[110px]">
+        <div class="mt-1 px-2 py-0.5 bg-white border border-black/10 rounded-full text-[10px] font-semibold text-zinc-800 shadow-lg truncate max-w-[110px]">
           ${escapeHtml(ping.senderProfile?.displayName?.split(' ')[0] || 'Ping')}: ${escapeHtml(ping.message)}
         </div>
       </div>

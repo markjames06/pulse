@@ -7,6 +7,7 @@ import {
   createLocationShareIcon,
   createMemoryPinIcon,
   createPingIcon,
+  getMemoryPinIconSvg,
 } from './mapUtils';
 import { MapControls } from './MapControls';
 import { MapOverlayActions } from './MapOverlayActions';
@@ -37,7 +38,7 @@ export const MapView: React.FC<MapViewProps> = ({
   const markersGroupRef = useRef<L.LayerGroup | null>(null);
   const userGpsMarkerRef = useRef<L.Marker | null>(null);
 
-  const [tileMode, setTileMode] = useState<'dark' | 'street'>('dark');
+  const [tileMode, setTileMode] = useState<'dark' | 'street'>('street');
   const [markerVisibility, setMarkerVisibility] = useState({
     activeShares: true,
     pings: true,
@@ -92,7 +93,7 @@ export const MapView: React.FC<MapViewProps> = ({
       zoomControl: false,
     });
 
-    L.control.zoom({ position: 'bottomright' }).addTo(map);
+    L.control.zoom({ position: 'topleft' }).addTo(map);
 
     applyMapTiles(map, tileMode);
     mapInstanceRef.current = map;
@@ -189,8 +190,8 @@ export const MapView: React.FC<MapViewProps> = ({
         const popupContent = `
           <div class="p-2 min-w-[200px]">
             <div class="flex items-center gap-2 mb-1.5">
-              <span class="text-rose-400 text-base">⚡</span>
-              <h4 class="font-bold text-xs text-rose-300">Ping from ${escapeHtml(ping.senderProfile?.displayName || 'Circle Member')}</h4>
+              <span class="text-zinc-700">${getMemoryPinIconSvg('celebration')}</span>
+              <h4 class="font-bold text-xs text-zinc-900">Ping from ${escapeHtml(ping.senderProfile?.displayName || 'Circle Member')}</h4>
             </div>
             <p class="text-xs text-slate-200 bg-slate-800/80 p-2 rounded-lg border border-white/5 mb-2">${escapeHtml(ping.message)}</p>
             <span class="text-[10px] text-slate-400">${formatTimeAgo(ping.createdAt)}</span>
@@ -214,8 +215,8 @@ export const MapView: React.FC<MapViewProps> = ({
         const popupContent = `
           <div class="p-2 min-w-[200px]">
             <div class="flex items-center gap-2 mb-1">
-              <span class="text-xl">${escapeHtml(pin.emoji || '📍')}</span>
-              <h4 class="font-bold text-sm text-slate-100">${escapeHtml(pin.caption)}</h4>
+              <span class="w-5 h-5 text-zinc-700">${getMemoryPinIconSvg(pin.emoji)}</span>
+              <h4 class="font-bold text-sm text-zinc-900">${escapeHtml(pin.caption)}</h4>
             </div>
             <p class="text-[11px] text-slate-400 mb-2">Saved by ${escapeHtml(pin.creatorProfile?.displayName || 'Member')}</p>
             <span class="text-[10px] text-amber-400/80">${formatTimeAgo(pin.createdAt)}</span>
@@ -244,7 +245,7 @@ export const MapView: React.FC<MapViewProps> = ({
   };
 
   return (
-    <div className="w-full h-[calc(100dvh-3.5rem)] md:h-[calc(100dvh-3.5rem)] relative overflow-hidden bg-zinc-950">
+    <div className="w-full h-[calc(100dvh-4.5rem)] md:h-dvh relative overflow-hidden bg-zinc-950">
       {/* Map Element Container */}
       <div ref={mapContainerRef} className="w-full h-full z-0" />
 

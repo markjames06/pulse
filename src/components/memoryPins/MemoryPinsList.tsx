@@ -2,6 +2,7 @@ import React from 'react';
 import { MemoryPin } from '../../types';
 import { Bookmark, Plus, Trash2, MapPin } from 'lucide-react';
 import { formatTimeAgo, getInitials } from '../../utils/formatters';
+import { getMemoryPinIconSvg } from '../map/mapUtils';
 
 interface MemoryPinsListProps {
   memoryPins: MemoryPin[];
@@ -21,22 +22,20 @@ export const MemoryPinsList: React.FC<MemoryPinsListProps> = ({
   onFocusPinOnMap,
 }) => {
   return (
-    <div className="max-w-4xl mx-auto p-4 sm:p-6 space-y-6">
+    <div className="pulse-content max-w-6xl mx-auto p-4 sm:p-8 space-y-8">
       {/* Top Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 bg-white border border-gray-200 rounded-3xl shadow-xs">
+      <div className="pulse-header flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <Bookmark className="w-5 h-5 text-amber-600" />
-            <h2 className="text-xl font-extrabold text-slate-900">Memory Pins</h2>
-          </div>
-          <p className="text-xs text-slate-500 font-medium">
-            Saved spots, memorable dates, or favorite meetups in <span className="font-bold text-slate-800">{circleName}</span>.
+          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-500">Library / Saved places</p>
+          <h2 className="text-2xl font-semibold tracking-tight text-slate-900">Memory pins</h2>
+          <p className="text-sm text-slate-500 max-w-xl">
+            Saved places and important spots for <span className="font-semibold text-slate-700">{circleName}</span>.
           </p>
         </div>
 
         <button
           onClick={onOpenMemoryPinModal}
-          className="flex items-center justify-center gap-2 px-5 py-3 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-2xl shadow-md shadow-amber-500/20 transition-all hover:scale-105 active:scale-95 shrink-0"
+          className="ui-primary-button flex items-center justify-center gap-2 px-4 py-2.5 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-semibold rounded-lg transition-all md:hover:-translate-y-0.5 active:scale-95 shrink-0"
         >
           <Plus className="w-4 h-4" />
           <span>Save Memory Pin</span>
@@ -45,8 +44,8 @@ export const MemoryPinsList: React.FC<MemoryPinsListProps> = ({
 
       {/* Pins Grid */}
       {memoryPins.length === 0 ? (
-        <div className="text-center py-16 bg-white border border-gray-200 rounded-3xl p-6">
-          <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-100 text-amber-500 flex items-center justify-center mx-auto mb-3">
+        <div className="text-center py-16 bg-white border border-gray-200 rounded-xl p-6">
+          <div className="w-10 h-10 rounded-lg bg-zinc-100 border border-zinc-200 text-zinc-700 flex items-center justify-center mx-auto mb-3">
             <Bookmark className="w-6 h-6" />
           </div>
           <h3 className="font-bold text-sm text-slate-900">No Saved Memory Pins</h3>
@@ -63,16 +62,16 @@ export const MemoryPinsList: React.FC<MemoryPinsListProps> = ({
             return (
               <div
                 key={pin.id}
-                className="p-5 bg-white border border-gray-200 rounded-3xl shadow-xs flex flex-col justify-between hover:border-gray-300 transition-all space-y-4"
+                className="pulse-card p-4 bg-white border border-gray-200 rounded-xl flex flex-col justify-between hover:border-gray-300 transition-all space-y-4"
               >
                 <div className="space-y-3">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-3">
-                      <div className="w-11 h-11 rounded-2xl bg-amber-50 border border-amber-100 text-2xl flex items-center justify-center shrink-0 shadow-xs">
-                        {pin.emoji || '📍'}
+                      <div className="w-11 h-11 rounded-2xl bg-zinc-100 border border-zinc-200 text-zinc-700 flex items-center justify-center shrink-0 shadow-xs">
+                        <span dangerouslySetInnerHTML={{ __html: getMemoryPinIconSvg(pin.emoji) }} />
                       </div>
                       <div>
-                        <h4 className="font-bold text-sm text-slate-900 leading-tight">
+                        <h4 className="font-semibold text-sm text-slate-900 leading-tight">
                           {pin.caption}
                         </h4>
                         <span className="text-[10px] text-slate-400 font-medium">

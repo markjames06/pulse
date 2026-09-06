@@ -69,7 +69,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     <div className="fixed inset-0 z-[1200] flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div className="fixed inset-0 bg-zinc-950/40 backdrop-blur-sm" onClick={onClose} />
 
-      <div className="relative w-full max-w-md bg-white text-zinc-900 rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl z-10 border border-black/5">
+      <div className="pulse-modal relative w-full max-w-md bg-white text-zinc-900 rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl z-10 border border-black/5">
         <div className="flex items-center justify-between mb-5">
           <div>
             <h3 className="font-semibold text-lg tracking-tight">Settings</h3>
@@ -102,7 +102,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           <button
             type="submit"
             disabled={isUpdating}
-            className="w-full py-3 bg-zinc-900 text-white text-sm font-medium rounded-2xl disabled:opacity-50"
+            className="ui-primary-button w-full py-3 bg-zinc-900 text-white text-sm font-medium rounded-2xl disabled:opacity-50"
           >
             {savedSuccess ? 'Saved' : isUpdating ? 'Saving…' : 'Save profile'}
           </button>

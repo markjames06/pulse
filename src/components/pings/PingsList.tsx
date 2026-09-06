@@ -15,22 +15,20 @@ export const PingsList: React.FC<PingsListProps> = ({
   circleName,
 }) => {
   return (
-    <div className="max-w-4xl mx-auto p-4 sm:p-6 space-y-6">
+    <div className="pulse-content max-w-6xl mx-auto p-4 sm:p-8 space-y-8">
       {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 bg-white border border-gray-200 rounded-3xl shadow-xs">
+      <div className="pulse-header flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <Zap className="w-5 h-5 text-rose-600" />
-            <h2 className="text-xl font-extrabold text-slate-900">Circle Pings</h2>
-          </div>
-          <p className="text-xs text-slate-500 font-medium">
-            Quick status updates, check-ins, or emergency alerts in <span className="font-bold text-slate-800">{circleName}</span>.
+          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-500">Activity / Updates</p>
+          <h2 className="text-2xl font-semibold tracking-tight text-slate-900">Circle pings</h2>
+          <p className="text-sm text-slate-500 max-w-xl">
+            Quick updates and check-ins from <span className="font-semibold text-slate-700">{circleName}</span>.
           </p>
         </div>
 
         <button
           onClick={onOpenPingModal}
-          className="flex items-center justify-center gap-2 px-5 py-3 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-2xl shadow-md shadow-rose-500/20 transition-all hover:scale-105 active:scale-95 shrink-0"
+          className="ui-primary-button flex items-center justify-center gap-2 px-4 py-2.5 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-semibold rounded-lg transition-all md:hover:-translate-y-0.5 active:scale-95 shrink-0"
         >
           <Send className="w-4 h-4" />
           <span>Send Quick Ping</span>
@@ -40,8 +38,8 @@ export const PingsList: React.FC<PingsListProps> = ({
       {/* Pings Feed */}
       <div className="space-y-3">
         {pings.length === 0 ? (
-          <div className="text-center py-16 bg-white border border-gray-200 rounded-3xl p-6">
-            <div className="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-100 text-rose-500 flex items-center justify-center mx-auto mb-3">
+          <div className="text-center py-16 bg-white border border-gray-200 rounded-xl p-6">
+            <div className="w-10 h-10 rounded-lg bg-zinc-100 border border-zinc-200 text-zinc-700 flex items-center justify-center mx-auto mb-3">
               <Zap className="w-6 h-6" />
             </div>
             <h3 className="font-bold text-sm text-slate-900">No Pings Sent Yet</h3>
@@ -56,7 +54,7 @@ export const PingsList: React.FC<PingsListProps> = ({
             return (
               <div
                 key={ping.id}
-                className="p-5 bg-white border border-gray-200 rounded-3xl shadow-xs flex items-start gap-4 hover:border-gray-300 transition-all"
+                className="pulse-card p-4 bg-white border border-gray-200 rounded-xl flex items-start gap-4 hover:border-gray-300 transition-all"
               >
                 <div
                   className={`w-11 h-11 rounded-2xl ${
@@ -68,7 +66,7 @@ export const PingsList: React.FC<PingsListProps> = ({
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
-                    <h4 className="font-bold text-sm text-slate-900 truncate">
+                    <h4 className="font-semibold text-sm text-slate-900 truncate">
                       {ping.senderProfile?.displayName || 'Circle Member'}
                     </h4>
                     <span className="text-[11px] text-slate-400 font-medium shrink-0">
@@ -76,7 +74,7 @@ export const PingsList: React.FC<PingsListProps> = ({
                     </span>
                   </div>
 
-                  <p className="text-xs text-slate-700 mt-1.5 leading-relaxed bg-gray-50 p-3 rounded-2xl border border-gray-100 font-medium">
+                  <p className="text-sm text-slate-700 mt-2 leading-relaxed bg-gray-50 p-3 rounded-lg border border-gray-100">
                     "{ping.message}"
                   </p>
 

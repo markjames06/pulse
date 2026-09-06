@@ -26,6 +26,7 @@ export const CirclesManager: React.FC<CirclesManagerProps> = ({
   const [isCreating, setIsCreating] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [circleAction, setCircleAction] = useState<'create' | 'join'>('create');
 
   const activeCircle = circles.find((c) => c.id === activeCircleId) || circles[0];
 
@@ -66,23 +67,21 @@ export const CirclesManager: React.FC<CirclesManagerProps> = ({
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-4 sm:p-6 space-y-6">
+    <div className="pulse-content max-w-6xl mx-auto p-4 sm:p-8 space-y-8">
       {/* Top Title Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 bg-white border border-gray-200 rounded-3xl shadow-xs">
+      <div className="pulse-header flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <Users className="w-5 h-5 text-indigo-600" />
-            <h2 className="text-xl font-extrabold text-slate-900">Trusted Circles</h2>
-          </div>
-          <p className="text-xs text-slate-500 font-medium">
-            Small, intentional groups (strictly max 5 members) for close family & partners.
+          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-500">Workspace / Groups</p>
+          <h2 className="text-2xl font-semibold tracking-tight text-slate-900">Trusted circles</h2>
+          <p className="text-sm text-slate-500 max-w-xl">
+            Private location-sharing groups for the people you trust.
           </p>
         </div>
 
         {/* Max 5 constraint badge */}
-        <div className="flex items-center gap-2 px-3.5 py-1.5 bg-emerald-50 border border-emerald-200 rounded-2xl text-xs font-bold text-emerald-700">
+        <div className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs font-medium text-zinc-600">
           <Shield className="w-4 h-4 shrink-0" />
-          <span>Max 5 People Per Circle Enforced</span>
+          <span>Up to 5 members per circle</span>
         </div>
       </div>
 
@@ -103,19 +102,19 @@ export const CirclesManager: React.FC<CirclesManagerProps> = ({
             <div
               key={circle.id}
               onClick={() => onSelectCircle(circle.id)}
-              className={`cursor-pointer p-5 rounded-3xl border transition-all ${
+              className={`pulse-card cursor-pointer p-4 rounded-xl border transition-all ${
                 isActive
-                  ? 'bg-white border-indigo-500 shadow-md ring-2 ring-indigo-500/10'
+                  ? 'bg-white border-blue-600 ring-1 ring-blue-600/10'
                   : 'bg-white border-gray-200 hover:border-gray-300'
               }`}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center">
+                  <div className="w-9 h-9 rounded-lg bg-zinc-100 border border-zinc-200 text-zinc-700 flex items-center justify-center">
                     <Users className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-slate-900 text-sm">{circle.name}</h3>
+                    <h3 className="font-semibold text-slate-900 text-sm">{circle.name}</h3>
                     <p className="text-xs text-slate-500">
                       {memberCount} / 5 trusted members
                     </p>
@@ -128,7 +127,7 @@ export const CirclesManager: React.FC<CirclesManagerProps> = ({
                       e.stopPropagation();
                       handleCopyCode(circle.inviteCode);
                     }}
-                    className="px-2.5 py-1 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl text-xs text-indigo-600 font-mono flex items-center gap-1.5 transition-colors font-bold"
+                    className="px-2 py-1 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-md text-[11px] text-zinc-600 font-mono flex items-center gap-1.5 transition-colors font-medium"
                     title="Copy Invite Code"
                   >
                     {copiedCode === circle.inviteCode ? (
@@ -166,7 +165,7 @@ export const CirclesManager: React.FC<CirclesManagerProps> = ({
                 </div>
 
                 <span className="text-[11px] text-gray-500 font-medium">
-                  Invite Code: <span className="font-mono text-slate-800 font-bold">{circle.inviteCode}</span>
+                  <span className="font-mono text-slate-800 font-semibold">{circle.inviteCode}</span>
                 </span>
               </div>
             </div>
@@ -176,15 +175,16 @@ export const CirclesManager: React.FC<CirclesManagerProps> = ({
 
       {/* Active Circle Members Grid */}
       {activeCircle && (
-        <div className="p-6 bg-white border border-gray-200 rounded-3xl space-y-4 shadow-xs">
+        <div className="pulse-card bg-white border p-5 rounded-xl space-y-5">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-              <span>Members in</span>
-              <span className="text-indigo-600">{activeCircle.name}</span>
+            <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+              <span>Members</span>
+              <span className="text-zinc-400">/</span>
+              <span className="text-blue-600">{activeCircle.name}</span>
             </h3>
 
-            <div className="text-xs text-slate-500 font-semibold">
-              Capacity: <span className="text-emerald-600 font-bold">{activeCircle.members.length}/5</span>
+              <div className="text-xs text-slate-500 font-medium">
+              <span className="text-slate-900 font-semibold">{activeCircle.members.length}</span>/5 members
             </div>
           </div>
 
@@ -197,7 +197,7 @@ export const CirclesManager: React.FC<CirclesManagerProps> = ({
               return (
                 <div
                   key={member.userId}
-                  className="p-3.5 bg-gray-50 border border-gray-200 rounded-2xl flex items-center gap-3"
+                  className="p-3 bg-gray-50/70 border border-gray-200 rounded-lg flex items-center gap-3"
                 >
                   <div
                     className={`w-10 h-10 rounded-full ${
@@ -240,61 +240,78 @@ export const CirclesManager: React.FC<CirclesManagerProps> = ({
         </div>
       )}
 
-      {/* Action Sections: Create or Join Circle */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Create Circle Form */}
-        <form onSubmit={handleCreateSubmit} className="p-5 bg-white border border-gray-200 rounded-3xl space-y-3 shadow-xs">
-          <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
-            <Plus className="w-4 h-4 text-indigo-600" />
-            Create New Circle
-          </h3>
-          <p className="text-[11px] text-gray-500">
-            Create a private location-sharing group for your partner or family.
-          </p>
-          <input
-            type="text"
-            placeholder="Circle Name (e.g., 'Sam & Alex')"
-            value={newCircleName}
-            onChange={(e) => setNewCircleName(e.target.value)}
-            maxLength={50}
-            required
-            className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-slate-900 placeholder-gray-400 focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20"
-          />
+      {/* Create / join task switcher */}
+      <div className="circle-action-tabs bg-white border border-gray-200 rounded-xl overflow-hidden">
+        <div className="flex items-center border-b border-gray-200 bg-gray-50/70 p-1.5" role="tablist" aria-label="Circle actions">
           <button
-            type="submit"
-            disabled={isCreating || !newCircleName.trim()}
-            className="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-md shadow-indigo-500/20 transition-all"
+            type="button"
+            role="tab"
+            aria-selected={circleAction === 'create'}
+            onClick={() => setCircleAction('create')}
+            className={`circle-action-tab flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-xs font-semibold transition-colors ${circleAction === 'create' ? 'is-active' : ''}`}
           >
-            {isCreating ? 'Creating...' : 'Create Circle'}
+            <Plus className="w-4 h-4" />
+            Create circle
           </button>
-        </form>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={circleAction === 'join'}
+            onClick={() => setCircleAction('join')}
+            className={`circle-action-tab flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-xs font-semibold transition-colors ${circleAction === 'join' ? 'is-active' : ''}`}
+          >
+            <UserPlus className="w-4 h-4" />
+            Join with code
+          </button>
+        </div>
 
-        {/* Join Circle Form */}
-        <form onSubmit={handleJoinSubmit} className="p-5 bg-white border border-gray-200 rounded-3xl space-y-3 shadow-xs">
-          <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
-            <UserPlus className="w-4 h-4 text-indigo-600" />
-            Join with Invite Code
-          </h3>
-          <p className="text-[11px] text-gray-500">
-            Enter the 6-character code shared by your partner or family member.
-          </p>
-          <input
-            type="text"
-            placeholder="Invite Code (e.g. PULSE7)"
-            value={inviteCodeInput}
-            onChange={(e) => setInviteCodeInput(e.target.value)}
-            maxLength={20}
-            required
-            className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-slate-900 font-mono tracking-widest placeholder-gray-400 focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20"
-          />
-          <button
-            type="submit"
-            disabled={isJoining || !inviteCodeInput.trim()}
-            className="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-md shadow-indigo-500/20 transition-all"
-          >
-            {isJoining ? 'Joining Circle...' : 'Join Circle'}
-          </button>
-        </form>
+        {circleAction === 'create' ? (
+          <form onSubmit={handleCreateSubmit} className="circle-tab-panel p-5 space-y-3" role="tabpanel">
+            <div>
+              <h3 className="text-sm font-semibold text-slate-900">Create a private circle</h3>
+              <p className="text-xs text-gray-500 mt-1">Start a group for your partner, family, or closest friends.</p>
+            </div>
+            <input
+              type="text"
+              placeholder="Circle name"
+              value={newCircleName}
+              onChange={(e) => setNewCircleName(e.target.value)}
+              maxLength={50}
+              required
+              className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-slate-900 placeholder-gray-400 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-500/15"
+            />
+            <button
+              type="submit"
+              disabled={isCreating || !newCircleName.trim()}
+              className="circle-primary-button w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-semibold text-xs rounded-lg transition-all"
+            >
+              {isCreating ? 'Creating…' : 'Create circle'}
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={handleJoinSubmit} className="circle-tab-panel p-5 space-y-3" role="tabpanel">
+            <div>
+              <h3 className="text-sm font-semibold text-slate-900">Join an existing circle</h3>
+              <p className="text-xs text-gray-500 mt-1">Enter the invite code shared by a circle member.</p>
+            </div>
+            <input
+              type="text"
+              placeholder="Invite code"
+              value={inviteCodeInput}
+              onChange={(e) => setInviteCodeInput(e.target.value)}
+              maxLength={20}
+              required
+              className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-slate-900 font-mono tracking-widest placeholder-gray-400 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-500/15"
+            />
+            <button
+              type="submit"
+              disabled={isJoining || !inviteCodeInput.trim()}
+              className="circle-primary-button w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-semibold text-xs rounded-lg transition-all"
+            >
+              {isJoining ? 'Joining…' : 'Join circle'}
+            </button>
+          </form>
+        )}
       </div>
     </div>
   );

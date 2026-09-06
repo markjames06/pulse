@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { X, Bookmark, MapPin, Sparkles } from 'lucide-react';
+import { X, Bookmark, MapPin } from 'lucide-react';
 import { getRandomCoordsOffset } from '../../utils/formatters';
+import { getMemoryPinIconSvg } from '../map/mapUtils';
 
 interface MemoryPinsModalProps {
   isOpen: boolean;
@@ -26,12 +27,12 @@ export const MemoryPinsModal: React.FC<MemoryPinsModalProps> = ({
   onSaveMemoryPin,
 }) => {
   const [caption, setCaption] = useState<string>('');
-  const [emoji, setEmoji] = useState<string>('📍');
+  const [emoji, setEmoji] = useState<string>('pin');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   if (!isOpen) return null;
 
-  const emojiPresets = ['📍', '🏠', '☕', '❤️', '🏖️', '🍕', '🎉', '🚗'];
+  const iconPresets = ['pin', 'home', 'coffee', 'heart', 'beach', 'food', 'celebration', 'car'];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,7 +44,7 @@ export const MemoryPinsModal: React.FC<MemoryPinsModalProps> = ({
     try {
       await onSaveMemoryPin(caption.trim(), emoji, coords.lat, coords.lng);
       setCaption('');
-      setEmoji('📍');
+      setEmoji('pin');
       setIsSubmitting(false);
       onClose();
     } catch (err) {
@@ -56,7 +57,7 @@ export const MemoryPinsModal: React.FC<MemoryPinsModalProps> = ({
     <div className="fixed inset-0 z-[1200] flex items-center justify-center p-4">
       <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-md" onClick={onClose} />
 
-      <div className="relative w-full max-w-md bg-slate-900 border border-white/10 rounded-3xl p-6 shadow-2xl text-white z-10 animate-in fade-in zoom-in-95 duration-200">
+      <div className="pulse-modal relative w-full max-w-md bg-slate-900 border border-white/10 rounded-3xl p-6 shadow-2xl text-white z-10 animate-in fade-in zoom-in-95 duration-200">
         <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-amber-600/20 border border-amber-500/30 flex items-center justify-center">
@@ -85,18 +86,16 @@ export const MemoryPinsModal: React.FC<MemoryPinsModalProps> = ({
               Select Pin Icon
             </label>
             <div className="flex items-center gap-2 overflow-x-auto pb-1">
-              {emojiPresets.map((e) => (
+              {iconPresets.map((e) => (
                 <button
                   type="button"
                   key={e}
                   onClick={() => setEmoji(e)}
-                  className={`w-10 h-10 rounded-2xl text-lg flex items-center justify-center transition-all ${
-                    emoji === e
-                      ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/30 ring-2 ring-amber-400'
-                      : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border border-white/5'
-                  }`}
+                  aria-label={`Use ${e} pin icon`}
+                  aria-pressed={emoji === e}
+                  className={`pin-icon-option ${emoji === e ? 'is-selected' : ''}`}
                 >
-                  {e}
+                  <span dangerouslySetInnerHTML={{ __html: getMemoryPinIconSvg(e) }} />
                 </button>
               ))}
             </div>
@@ -133,14 +132,14 @@ export const MemoryPinsModal: React.FC<MemoryPinsModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-colors"
+              className="ui-secondary-button flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting || !caption.trim()}
-              className="flex-1 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white text-xs font-semibold shadow-lg shadow-amber-600/30 transition-all flex items-center justify-center gap-2"
+              className="ui-primary-button flex-1 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white text-xs font-semibold shadow-lg shadow-amber-600/30 transition-all flex items-center justify-center gap-2"
             >
               {isSubmitting ? (
                 <span>Saving...</span>
