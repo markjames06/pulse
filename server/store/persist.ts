@@ -5,8 +5,7 @@ import {
   pings,
   memoryPins,
   notifications,
-  seedData,
-} from './db';
+} from './db.js';
 import {
   UserProfile,
   Circle,
@@ -14,9 +13,9 @@ import {
   Ping,
   MemoryPin,
   NotificationItem,
-} from '../../src/types';
+} from '../../src/types/index.js';
 
-const STORE_KEY = 'pulse:db';
+const STORE_KEY = 'pulse:db:v2';
 
 type StoreSnapshot = {
   users: UserProfile[];
@@ -97,12 +96,6 @@ export async function hydrateStore() {
         restoreSnapshot(JSON.parse(raw) as StoreSnapshot);
         return;
       }
-
-      if (users.size === 0) {
-        seedData();
-      }
-
-      await persistStore();
     } catch (error) {
       console.error('Failed to hydrate Pulse store from Redis:', error);
       hydratePromise = null;

@@ -1,188 +1,178 @@
 import React, { useState } from 'react';
-import { X, UserPlus, Radio, Check, User } from 'lucide-react';
+import { X, Radio } from 'lucide-react';
 import { api } from '../../api';
 import { UserProfile } from '../../types';
-import { getInitials } from '../../utils/formatters';
 
 interface RegisterAccountModalProps {
   isOpen: boolean;
+  required?: boolean;
   onClose: () => void;
   onRegisterSuccess: (user: UserProfile) => Promise<void>;
-  existingUsers?: UserProfile[];
-  onSelectExistingUser?: (userId: string) => void;
 }
+
+const colorOptions = [
+  { label: 'Ink', class: 'bg-zinc-800' },
+  { label: 'Rose', class: 'bg-rose-600' },
+  { label: 'Emerald', class: 'bg-emerald-600' },
+  { label: 'Amber', class: 'bg-amber-600' },
+  { label: 'Sky', class: 'bg-sky-600' },
+  { label: 'Violet', class: 'bg-violet-600' },
+];
 
 export const RegisterAccountModal: React.FC<RegisterAccountModalProps> = ({
   isOpen,
+  required = false,
   onClose,
   onRegisterSuccess,
-  existingUsers = [],
-  onSelectExistingUser,
 }) => {
+  const [mode, setMode] = useState<'login' | 'register'>('login');
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
-  const [selectedColor, setSelectedColor] = useState('bg-indigo-600');
+  const [password, setPassword] = useState('');
+  const [selectedColor, setSelectedColor] = useState('bg-zinc-800');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
-  const colorOptions = [
-    { label: 'Indigo', class: 'bg-indigo-600' },
-    { label: 'Rose', class: 'bg-rose-600' },
-    { label: 'Emerald', class: 'bg-emerald-600' },
-    { label: 'Amber', class: 'bg-amber-600' },
-    { label: 'Sky', class: 'bg-sky-600' },
-    { label: 'Purple', class: 'bg-purple-600' },
-  ];
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!displayName.trim() || !email.trim()) return;
-
     setIsSubmitting(true);
     setErrorMsg(null);
 
     try {
-      const newUser = await api.registerUser({
-        displayName: displayName.trim(),
-        email: email.trim(),
-        avatarColor: selectedColor,
-      });
+      const user =
+        mode === 'login'
+          ? await api.loginUser({ email: email.trim(), password })
+          : await api.registerUser({
+              displayName: displayName.trim(),
+              email: email.trim(),
+              password,
+              avatarColor: selectedColor,
+            });
 
-      await onRegisterSuccess(newUser);
+      await onRegisterSuccess(user);
       setDisplayName('');
       setEmail('');
-      setIsSubmitting(false);
-      onClose();
-    } catch (err: any) {
-      setErrorMsg(err.message || 'Registration failed');
+      setPassword('');
+    } catch (err: unknown) {
+      setErrorMsg(err instanceof Error ? err.message : 'Something went wrong');
+    } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-[1200] flex items-center justify-center p-4">
-      <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md" onClick={onClose} />
+    <div className="fixed inset-0 z-[1200] flex items-end sm:items-center justify-center p-0 sm:p-4">
+      <div
+        className="fixed inset-0 bg-zinc-950/40 backdrop-blur-sm"
+        onClick={required ? undefined : onClose}
+      />
 
-      <div className="relative w-full max-w-md bg-slate-900 border border-white/10 rounded-3xl p-6 shadow-2xl text-white z-10 animate-in fade-in zoom-in-95 duration-200">
-        <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center">
-              <UserPlus className="w-5 h-5 text-indigo-400" />
+      <div className="relative w-full max-w-md bg-white text-zinc-900 rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl z-10 border border-black/5">
+        <div className="flex items-start justify-between mb-6">
+          <div>
+            <div className="w-10 h-10 rounded-full bg-zinc-900 text-white flex items-center justify-center mb-3">
+              <Radio className="w-4 h-4" />
             </div>
-            <div>
-              <h3 className="font-bold text-base text-slate-100">Register Pulse Profile</h3>
-              <p className="text-xs text-slate-400">Join trusted circle live map</p>
-            </div>
+            <h3 className="font-semibold text-xl tracking-tight">
+              {mode === 'login' ? 'Welcome back' : 'Create your Pulse'}
+            </h3>
+            <p className="text-sm text-zinc-500 mt-1">
+              Private circles. Consent-first location sharing.
+            </p>
           </div>
+          {!required && (
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-2 rounded-full hover:bg-zinc-100 text-zinc-500"
+              aria-label="Close"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
 
+        <div className="grid grid-cols-2 p-1 rounded-full bg-zinc-100 mb-5 text-sm font-medium">
           <button
-            onClick={onClose}
-            className="p-1.5 rounded-xl bg-slate-800 text-slate-400 hover:text-white transition-colors"
+            type="button"
+            onClick={() => setMode('login')}
+            className={`py-2 rounded-full ${mode === 'login' ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-500'}`}
           >
-            <X className="w-5 h-5" />
+            Sign in
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode('register')}
+            className={`py-2 rounded-full ${mode === 'register' ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-500'}`}
+          >
+            Register
           </button>
         </div>
 
         {errorMsg && (
-          <div className="mb-4 p-3 bg-rose-950/60 border border-rose-500/30 rounded-2xl text-xs text-rose-300">
-            {errorMsg}
-          </div>
+          <div className="mb-4 p-3 rounded-2xl bg-rose-50 text-rose-700 text-sm">{errorMsg}</div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-              Display Name
-            </label>
+        <form onSubmit={handleSubmit} className="space-y-3">
+          {mode === 'register' && (
             <input
               type="text"
-              placeholder="e.g. Alex Rivera"
+              placeholder="Your name"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
               required
               maxLength={50}
-              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/90 border border-white/10 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+              autoComplete="name"
+              className="w-full px-4 py-3 rounded-2xl bg-zinc-50 border border-black/8 text-sm focus:outline-none focus:border-zinc-900"
             />
-          </div>
+          )}
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            autoComplete="email"
+            className="w-full px-4 py-3 rounded-2xl bg-zinc-50 border border-black/8 text-sm focus:outline-none focus:border-zinc-900"
+          />
+          <input
+            type="password"
+            placeholder={mode === 'register' ? 'Password (8+ characters)' : 'Password'}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            minLength={8}
+            maxLength={72}
+            autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+            className="w-full px-4 py-3 rounded-2xl bg-zinc-50 border border-black/8 text-sm focus:outline-none focus:border-zinc-900"
+          />
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-              Email Address
-            </label>
-            <input
-              type="email"
-              placeholder="alex@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/90 border border-white/10 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-2">
-              Avatar Color Theme
-            </label>
-            <div className="flex items-center gap-2">
-              {colorOptions.map((c) => (
+          {mode === 'register' && (
+            <div className="flex items-center gap-2 pt-1">
+              {colorOptions.map((color) => (
                 <button
                   type="button"
-                  key={c.class}
-                  onClick={() => setSelectedColor(c.class)}
-                  className={`w-8 h-8 rounded-full ${c.class} flex items-center justify-center transition-all ${
-                    selectedColor === c.class
-                      ? 'ring-2 ring-white scale-110 shadow-lg'
-                      : 'opacity-70 hover:opacity-100'
+                  key={color.class}
+                  aria-label={color.label}
+                  onClick={() => setSelectedColor(color.class)}
+                  className={`w-7 h-7 rounded-full ${color.class} ${
+                    selectedColor === color.class ? 'ring-2 ring-offset-2 ring-zinc-900' : ''
                   }`}
-                >
-                  {selectedColor === c.class && <Check className="w-4 h-4 text-white" />}
-                </button>
+                />
               ))}
             </div>
-          </div>
+          )}
 
           <button
             type="submit"
-            disabled={isSubmitting || !displayName.trim() || !email.trim()}
-            className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center gap-2"
+            disabled={isSubmitting}
+            className="w-full py-3 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-50 text-white text-sm font-medium rounded-2xl"
           >
-            {isSubmitting ? (
-              <span>Registering...</span>
-            ) : (
-              <>
-                <Radio className="w-4 h-4" />
-                <span>Join & Start Sharing</span>
-              </>
-            )}
+            {isSubmitting ? 'Please wait…' : mode === 'login' ? 'Sign in' : 'Create account'}
           </button>
         </form>
-
-        {existingUsers.length > 0 && onSelectExistingUser && (
-          <div className="mt-6 pt-4 border-t border-white/10">
-            <p className="text-[11px] text-slate-400 mb-2 font-medium">Or select existing demo account:</p>
-            <div className="space-y-1 max-h-36 overflow-y-auto">
-              {existingUsers.map((u) => (
-                <button
-                  key={u.id}
-                  onClick={() => {
-                    onSelectExistingUser(u.id);
-                    onClose();
-                  }}
-                  className="w-full flex items-center gap-2 p-2 rounded-xl bg-slate-800/60 hover:bg-slate-800 text-xs text-slate-200 transition-colors"
-                >
-                  <div
-                    className={`w-6 h-6 rounded-lg ${u.avatarColor} text-white font-bold text-[10px] flex items-center justify-center shrink-0`}
-                  >
-                    {getInitials(u.displayName)}
-                  </div>
-                  <span className="truncate text-left font-medium">{u.displayName} ({u.email})</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

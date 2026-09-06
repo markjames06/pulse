@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Circle, UserProfile } from '../../types';
+import { Circle } from '../../types';
 import { Users, UserPlus, Copy, Check, Shield, Crown, Plus, AlertCircle } from 'lucide-react';
 import { getInitials } from '../../utils/formatters';
 

@@ -1,10 +1,10 @@
 import { Router, Request, Response } from 'express';
-import { notifications, circles } from '../store/db';
-import { getAuthUserId } from '../middleware/auth.middleware';
+import { notifications, circles } from '../store/db.js';
+import { getAuthUserId, requireAuth } from '../middleware/auth.middleware.js';
 
 export const notificationsRouter = Router();
 
-notificationsRouter.get('/api/notifications', (req: Request, res: Response) => {
+notificationsRouter.get('/api/notifications', requireAuth, (req: Request, res: Response) => {
   const userId = getAuthUserId(req);
   const circleId = req.query.circleId as string;
 

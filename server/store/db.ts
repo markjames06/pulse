@@ -5,7 +5,7 @@ import {
   Ping,
   MemoryPin,
   NotificationItem,
-} from '../../src/types';
+} from '../../src/types/index.js';
 
 type PulseMemoryStore = {
   users: Map<string, UserProfile>;
@@ -14,7 +14,6 @@ type PulseMemoryStore = {
   pings: Ping[];
   memoryPins: MemoryPin[];
   notifications: NotificationItem[];
-  seeded: boolean;
 };
 
 const globalStore = globalThis as typeof globalThis & {
@@ -29,7 +28,6 @@ if (!globalStore.__pulseStore) {
     pings: [],
     memoryPins: [],
     notifications: [],
-    seeded: false,
   };
 }
 
@@ -47,38 +45,4 @@ export function seedData() {
   memoryPins.length = 0;
   notifications.length = 0;
   circles.clear();
-
-  const defaultUser: UserProfile = {
-    id: 'usr_default',
-    displayName: 'Pulse User',
-    email: 'pulse@example.com',
-    avatarColor: 'bg-indigo-600',
-    createdAt: new Date().toISOString(),
-  };
-
-  users.set(defaultUser.id, defaultUser);
-
-  const familyCircle: Circle = {
-    id: 'circ_family',
-    name: 'Our Circle ❤️',
-    ownerId: defaultUser.id,
-    inviteCode: 'PULSE7',
-    createdAt: new Date().toISOString(),
-    members: [
-      {
-        circleId: 'circ_family',
-        userId: defaultUser.id,
-        role: 'owner',
-        joinedAt: new Date().toISOString(),
-        profile: defaultUser,
-      },
-    ],
-  };
-
-  circles.set(familyCircle.id, familyCircle);
-  globalStore.__pulseStore!.seeded = true;
-}
-
-if (!globalStore.__pulseStore.seeded || users.size === 0) {
-  seedData();
 }

@@ -1,13 +1,14 @@
 import { Router, Request, Response } from 'express';
-import { locationShares, users, circles, notifications } from '../store/db';
-import { getAuthUserId } from '../middleware/auth.middleware';
-import { rateLimiter } from '../middleware/rateLimiter';
-import { sanitizeText } from '../utils/sanitizer';
-import { createShareSchema, updateLocationSchema, LocationShare } from '../../src/types';
+import { locationShares, users, circles, notifications } from '../store/db.js';
+import { getAuthUserId, requireAuth } from '../middleware/auth.middleware.js';
+import { rateLimiter } from '../middleware/rateLimiter.js';
+import { sanitizeText } from '../utils/sanitizer.js';
+import { publicUser } from '../utils/publicUser.js';
+import { createShareSchema, updateLocationSchema, LocationShare } from '../../src/types/index.js';
 
 export const sharesRouter = Router();
 
-sharesRouter.get('/api/shares', (req: Request, res: Response) => {
+sharesRouter.get('/api/shares', requireAuth, (req: Request, res: Response) => {
   const userId = getAuthUserId(req);
   const circleId = req.query.circleId as string;
 
@@ -26,7 +27,7 @@ sharesRouter.get('/api/shares', (req: Request, res: Response) => {
   res.json(activeShares);
 });
 
-sharesRouter.post('/api/shares', rateLimiter(20, 60000), (req: Request, res: Response) => {
+sharesRouter.post('/api/shares', requireAuth, rateLimiter(20, 60000), (req: Request, res: Response) => {
   const userId = getAuthUserId(req);
   const user = users.get(userId);
   if (!user) return res.status(401).json({ error: 'Unauthorized' });
@@ -63,7 +64,7 @@ sharesRouter.post('/api/shares', rateLimiter(20, 60000), (req: Request, res: Res
     expiresAt,
     createdAt: new Date().toISOString(),
     isActive: true,
-    userProfile: user,
+    userProfile: publicUser(user),
   };
 
   locationShares.set(shareId, newShare);
@@ -81,7 +82,7 @@ sharesRouter.post('/api/shares', rateLimiter(20, 60000), (req: Request, res: Res
   res.status(201).json(newShare);
 });
 
-sharesRouter.delete('/api/shares/:id', (req: Request, res: Response) => {
+sharesRouter.delete('/api/shares/:id', requireAuth, (req: Request, res: Response) => {
   const userId = getAuthUserId(req);
   const shareId = req.params.id;
 
@@ -98,7 +99,7 @@ sharesRouter.delete('/api/shares/:id', (req: Request, res: Response) => {
   res.json({ success: true, message: 'Location sharing stopped successfully' });
 });
 
-sharesRouter.put('/api/shares/:id/location', (req: Request, res: Response) => {
+sharesRouter.put('/api/shares/:id/location', requireAuth, (req: Request, res: Response) => {
   const userId = getAuthUserId(req);
   const shareId = req.params.id;
 

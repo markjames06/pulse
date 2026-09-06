@@ -1,13 +1,14 @@
 import { Router, Request, Response } from 'express';
-import { pings, users, circles, notifications } from '../store/db';
-import { getAuthUserId } from '../middleware/auth.middleware';
-import { rateLimiter } from '../middleware/rateLimiter';
-import { sanitizeText } from '../utils/sanitizer';
-import { createPingSchema, Ping } from '../../src/types';
+import { pings, users, circles, notifications } from '../store/db.js';
+import { getAuthUserId, requireAuth } from '../middleware/auth.middleware.js';
+import { rateLimiter } from '../middleware/rateLimiter.js';
+import { sanitizeText } from '../utils/sanitizer.js';
+import { publicUser } from '../utils/publicUser.js';
+import { createPingSchema, Ping } from '../../src/types/index.js';
 
 export const pingsRouter = Router();
 
-pingsRouter.get('/api/pings', (req: Request, res: Response) => {
+pingsRouter.get('/api/pings', requireAuth, (req: Request, res: Response) => {
   const userId = getAuthUserId(req);
   const circleId = req.query.circleId as string;
 
@@ -20,7 +21,7 @@ pingsRouter.get('/api/pings', (req: Request, res: Response) => {
   res.json(filteredPings);
 });
 
-pingsRouter.post('/api/pings', rateLimiter(10, 60000), (req: Request, res: Response) => {
+pingsRouter.post('/api/pings', requireAuth, rateLimiter(10, 60000), (req: Request, res: Response) => {
   const userId = getAuthUserId(req);
   const user = users.get(userId);
   if (!user) return res.status(401).json({ error: 'Unauthorized' });
@@ -45,7 +46,7 @@ pingsRouter.post('/api/pings', rateLimiter(10, 60000), (req: Request, res: Respo
     longitude,
     message: sanitizedMessage,
     createdAt: new Date().toISOString(),
-    senderProfile: user,
+    senderProfile: publicUser(user),
   };
 
   pings.unshift(newPing);

@@ -1,21 +1,28 @@
 import { Router, Request, Response } from 'express';
-import { circles, users, notifications } from '../store/db';
-import { getAuthUserId } from '../middleware/auth.middleware';
-import { rateLimiter } from '../middleware/rateLimiter';
-import { sanitizeText } from '../utils/sanitizer';
-import { createCircleSchema, joinCircleSchema, Circle } from '../../src/types';
+import { circles, users, notifications } from '../store/db.js';
+import { getAuthUserId, requireAuth } from '../middleware/auth.middleware.js';
+import { publicUser } from '../utils/publicUser.js';
+import { rateLimiter } from '../middleware/rateLimiter.js';
+import { sanitizeText } from '../utils/sanitizer.js';
+import { createCircleSchema, joinCircleSchema, Circle } from '../../src/types/index.js';
 
 export const circlesRouter = Router();
 
-circlesRouter.get('/api/circles', (req: Request, res: Response) => {
+circlesRouter.get('/api/circles', requireAuth, (req: Request, res: Response) => {
   const userId = getAuthUserId(req);
-  const userCircles = Array.from(circles.values()).filter((circle) =>
-    circle.members.some((m) => m.userId === userId)
-  );
+  const userCircles = Array.from(circles.values())
+    .filter((circle) => circle.members.some((m) => m.userId === userId))
+    .map((circle) => ({
+      ...circle,
+      members: circle.members.map((member) => ({
+        ...member,
+        profile: member.profile ? publicUser(member.profile) : undefined,
+      })),
+    }));
   res.json(userCircles);
 });
 
-circlesRouter.post('/api/circles', rateLimiter(5, 3600000), (req: Request, res: Response) => {
+circlesRouter.post('/api/circles', requireAuth, rateLimiter(5, 3600000), (req: Request, res: Response) => {
   const userId = getAuthUserId(req);
   const user = users.get(userId);
   if (!user) return res.status(401).json({ error: 'Unauthorized' });
@@ -41,7 +48,7 @@ circlesRouter.post('/api/circles', rateLimiter(5, 3600000), (req: Request, res: 
         userId,
         role: 'owner',
         joinedAt: new Date().toISOString(),
-        profile: user,
+        profile: publicUser(user),
       },
     ],
   };
@@ -50,7 +57,7 @@ circlesRouter.post('/api/circles', rateLimiter(5, 3600000), (req: Request, res: 
   res.status(201).json(newCircle);
 });
 
-circlesRouter.post('/api/circles/join', rateLimiter(10, 600000), (req: Request, res: Response) => {
+circlesRouter.post('/api/circles/join', requireAuth, rateLimiter(10, 600000), (req: Request, res: Response) => {
   const userId = getAuthUserId(req);
   const user = users.get(userId);
   if (!user) return res.status(401).json({ error: 'Unauthorized' });
@@ -82,7 +89,7 @@ circlesRouter.post('/api/circles/join', rateLimiter(10, 600000), (req: Request, 
     userId,
     role: 'member' as const,
     joinedAt: new Date().toISOString(),
-    profile: user,
+    profile: publicUser(user),
   };
 
   circle.members.push(newMember);

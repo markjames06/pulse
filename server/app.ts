@@ -2,14 +2,16 @@ import express, { Request, Response, NextFunction } from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-import { usersRouter } from './routes/users.routes';
-import { circlesRouter } from './routes/circles.routes';
-import { sharesRouter } from './routes/shares.routes';
-import { pingsRouter } from './routes/pings.routes';
-import { memoryPinsRouter } from './routes/memoryPins.routes';
-import { notificationsRouter } from './routes/notifications.routes';
-import { locationShares } from './store/db';
-import { hydrateStore, persistStore } from './store/persist';
+import { usersRouter } from './routes/users.routes.js';
+import { circlesRouter } from './routes/circles.routes.js';
+import { sharesRouter } from './routes/shares.routes.js';
+import { pingsRouter } from './routes/pings.routes.js';
+import { memoryPinsRouter } from './routes/memoryPins.routes.js';
+import { notificationsRouter } from './routes/notifications.routes.js';
+import { locationShares } from './store/db.js';
+import { hydrateStore, persistStore } from './store/persist.js';
+import { securityHeaders } from './middleware/security.middleware.js';
+import { rateLimiter } from './middleware/rateLimiter.js';
 
 const app = express();
 
@@ -18,9 +20,12 @@ const __dirname = path.dirname(__filename);
 const isVercel = Boolean(process.env.VERCEL);
 const isProduction = process.env.NODE_ENV === 'production';
 
-app.set('trust proxy', true);
-app.use(express.json({ limit: '1mb' }));
-app.use(express.urlencoded({ extended: true }));
+app.disable('x-powered-by');
+app.set('trust proxy', 1);
+app.use(securityHeaders);
+app.use(express.json({ limit: '32kb' }));
+app.use(express.urlencoded({ extended: false, limit: '32kb' }));
+app.use('/api', rateLimiter(120, 60 * 1000));
 
 app.use(async (_req: Request, res: Response, next: NextFunction) => {
   try {
@@ -67,7 +72,7 @@ app.get('/health', (_req, res) => {
   });
 });
 
-app.all('/api/*', (_req: Request, res: Response) => {
+app.all('/api/{*path}', (_req: Request, res: Response) => {
   res.status(404).json({ error: 'API endpoint not found' });
 });
 
@@ -76,7 +81,7 @@ if (isProduction && !isVercel) {
 
   app.use(express.static(distPath));
 
-  app.get('*', (req, res, next) => {
+  app.get('{*path}', (req, res, next) => {
     if (req.path.startsWith('/api/')) {
       return next();
     }
@@ -91,7 +96,12 @@ app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
     typeof err === 'object' && err && 'status' in err && typeof err.status === 'number'
       ? err.status
       : 500;
-  const message = err instanceof Error ? err.message : 'Internal server error';
+  const message =
+    status >= 500 && isProduction
+      ? 'Internal server error'
+      : err instanceof Error
+        ? err.message
+        : 'Internal server error';
   res.status(status).json({ error: message });
 });
 

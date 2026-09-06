@@ -1,13 +1,14 @@
 import { Router, Request, Response } from 'express';
-import { memoryPins, users, circles, notifications } from '../store/db';
-import { getAuthUserId } from '../middleware/auth.middleware';
-import { rateLimiter } from '../middleware/rateLimiter';
-import { sanitizeText } from '../utils/sanitizer';
-import { createMemoryPinSchema, MemoryPin } from '../../src/types';
+import { memoryPins, users, circles, notifications } from '../store/db.js';
+import { getAuthUserId, requireAuth } from '../middleware/auth.middleware.js';
+import { rateLimiter } from '../middleware/rateLimiter.js';
+import { sanitizeText } from '../utils/sanitizer.js';
+import { publicUser } from '../utils/publicUser.js';
+import { createMemoryPinSchema, MemoryPin } from '../../src/types/index.js';
 
 export const memoryPinsRouter = Router();
 
-memoryPinsRouter.get('/api/memory-pins', (req: Request, res: Response) => {
+memoryPinsRouter.get('/api/memory-pins', requireAuth, (req: Request, res: Response) => {
   const userId = getAuthUserId(req);
   const circleId = req.query.circleId as string;
 
@@ -20,7 +21,7 @@ memoryPinsRouter.get('/api/memory-pins', (req: Request, res: Response) => {
   res.json(filteredPins);
 });
 
-memoryPinsRouter.post('/api/memory-pins', rateLimiter(10, 60000), (req: Request, res: Response) => {
+memoryPinsRouter.post('/api/memory-pins', requireAuth, rateLimiter(10, 60000), (req: Request, res: Response) => {
   const userId = getAuthUserId(req);
   const user = users.get(userId);
   if (!user) return res.status(401).json({ error: 'Unauthorized' });
@@ -46,7 +47,7 @@ memoryPinsRouter.post('/api/memory-pins', rateLimiter(10, 60000), (req: Request,
     caption: sanitizedCaption,
     emoji: emoji || '📍',
     createdAt: new Date().toISOString(),
-    creatorProfile: user,
+    creatorProfile: publicUser(user),
   };
 
   memoryPins.unshift(newPin);
@@ -64,7 +65,7 @@ memoryPinsRouter.post('/api/memory-pins', rateLimiter(10, 60000), (req: Request,
   res.status(201).json(newPin);
 });
 
-memoryPinsRouter.delete('/api/memory-pins/:id', (req: Request, res: Response) => {
+memoryPinsRouter.delete('/api/memory-pins/:id', requireAuth, (req: Request, res: Response) => {
   const userId = getAuthUserId(req);
   const pinId = req.params.id;
 

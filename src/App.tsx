@@ -19,7 +19,6 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<'map' | 'circles' | 'pings' | 'memory_pins'>('map');
 
   const {
-    users,
     currentUserId,
     currentUser,
     circles,
@@ -32,7 +31,7 @@ export default function App() {
     notifications,
     activeUserShare,
     isRegisterRequired,
-    handleSwitchUser,
+    isBooting,
     handleStartShare,
     handleStopShare,
     handleSendPing,
@@ -41,6 +40,7 @@ export default function App() {
     handleCreateCircle,
     handleJoinCircle,
     handleDeleteAccount,
+    handleLogout,
     handleUpdateAccount,
     handleRegisterSuccess: onRegisterSuccess,
   } = usePulseState();
@@ -65,42 +65,40 @@ export default function App() {
   const handleRegisterSuccess = async (newUser: UserProfile) => {
     await onRegisterSuccess(newUser);
     setActiveTab('map');
-    setIsShareModalOpen(true);
+    setIsRegisterModalOpen(false);
   };
 
-  const handleUserSwitch = (userId: string) => {
-    handleSwitchUser(userId);
-    setActiveTab('map');
-  };
+  if (isBooting) {
+    return (
+      <div className="min-h-dvh bg-[#f7f6f3] flex items-center justify-center text-zinc-500 text-sm">
+        Loading Pulse…
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-[#fdfdfc] text-slate-900 flex flex-col font-sans selection:bg-indigo-500/20">
-      {/* Top Navbar */}
+    <div className="min-h-dvh bg-[#f7f6f3] text-zinc-900 flex flex-col font-sans selection:bg-zinc-900 selection:text-white">
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         circles={circles}
         activeCircleId={activeCircleId}
         onSelectCircle={setActiveCircleId}
-        users={users}
-        currentUserId={currentUserId}
-        onSwitchUser={handleUserSwitch}
+        currentUser={currentUser}
         unreadNotificationsCount={notifications.filter((n) => !n.read).length}
         onOpenNotifications={() => setIsNotificationsOpen(true)}
         onOpenSettings={() => setIsSettingsOpen(true)}
-        onOpenRegisterModal={() => setIsRegisterModalOpen(true)}
       />
 
-      {/* Active Location Share Floating Banner */}
       {activeUserShare && (
-        <ActiveShareBanner
-          activeShare={activeUserShare}
-          onStopShare={handleStopShare}
-        />
+        <ActiveShareBanner activeShare={activeUserShare} onStopShare={handleStopShare} />
       )}
 
-      {/* Main View Area */}
-      <main className={`flex-1 relative overflow-x-hidden ${activeTab !== 'map' ? 'pb-20 md:pb-6' : ''}`}>
+      <main
+        className={`flex-1 relative overflow-x-hidden ${
+          activeTab !== 'map' ? 'pb-24 md:pb-8' : 'pb-16 md:pb-0'
+        }`}
+      >
         {activeTab === 'map' && (
           <MapView
             shares={shares}
@@ -146,7 +144,6 @@ export default function App() {
         )}
       </main>
 
-      {/* Modals & Drawers */}
       <ShareLocationModal
         isOpen={isShareModalOpen}
         onClose={() => setIsShareModalOpen(false)}
@@ -183,18 +180,17 @@ export default function App() {
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
         currentUserName={currentUser?.displayName || 'User'}
-        currentUserEmail={currentUser?.email || 'user@example.com'}
+        currentUserEmail={currentUser?.email || ''}
         onDeleteAccount={handleDeleteAccount}
         onUpdateAccount={handleUpdateAccount}
-        onOpenRegisterModal={() => setIsRegisterModalOpen(true)}
+        onLogout={handleLogout}
       />
 
       <RegisterAccountModal
         isOpen={isRegisterModalOpen || isRegisterRequired}
+        required={isRegisterRequired}
         onClose={() => setIsRegisterModalOpen(false)}
         onRegisterSuccess={handleRegisterSuccess}
-        existingUsers={users}
-        onSelectExistingUser={handleUserSwitch}
       />
     </div>
   );

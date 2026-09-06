@@ -1,90 +1,88 @@
 import { useState, useEffect, useCallback } from 'react';
-import { api, setApiActiveUserId } from '../api';
+import { api } from '../api';
 import { Circle, LocationShare, MemoryPin, NotificationItem, Ping, UserProfile } from '../types';
 import { getRandomCoordsOffset } from '../utils/formatters';
 
 export function usePulseState() {
-  const [users, setUsers] = useState<UserProfile[]>([]);
-  const [currentUserId, setCurrentUserId] = useState<string>(() => {
-    return localStorage.getItem('pulse_user_id') || '';
-  });
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [circles, setCircles] = useState<Circle[]>([]);
-  const [activeCircleId, setActiveCircleId] = useState<string>('circ_family');
-
+  const [activeCircleId, setActiveCircleId] = useState<string>('');
   const [shares, setShares] = useState<LocationShare[]>([]);
   const [pings, setPings] = useState<Ping[]>([]);
   const [memoryPins, setMemoryPins] = useState<MemoryPin[]>([]);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [isRegisterRequired, setIsRegisterRequired] = useState(false);
+  const [isBooting, setIsBooting] = useState(true);
 
   const loadData = useCallback(async () => {
     try {
-      const fetchedUsers = await api.getUsers();
-      setUsers(fetchedUsers);
-
-      let activeUserId = currentUserId;
-
-      if (fetchedUsers.length === 0) {
-        setIsRegisterRequired(true);
-      } else if (!activeUserId || !fetchedUsers.some((u: UserProfile) => u.id === activeUserId)) {
-        const defaultUser = fetchedUsers[0];
-        activeUserId = defaultUser.id;
-        setCurrentUserId(defaultUser.id);
-        setApiActiveUserId(defaultUser.id);
-        localStorage.setItem('pulse_user_id', defaultUser.id);
-      } else {
-        setApiActiveUserId(activeUserId);
-      }
+      const me = await api.getMe();
+      setCurrentUser(me);
+      setIsRegisterRequired(false);
 
       const fetchedCircles = await api.getCircles();
       setCircles(fetchedCircles);
 
-      if (fetchedCircles.length > 0 && !fetchedCircles.some((c: Circle) => c.id === activeCircleId)) {
-        setActiveCircleId(fetchedCircles[0].id);
+      const nextCircleId =
+        fetchedCircles.some((circle) => circle.id === activeCircleId)
+          ? activeCircleId
+          : fetchedCircles[0]?.id || '';
+
+      if (nextCircleId !== activeCircleId) {
+        setActiveCircleId(nextCircleId);
       }
 
-      const fetchedShares = await api.getShares(activeCircleId);
+      if (!nextCircleId) {
+        setShares([]);
+        setPings([]);
+        setMemoryPins([]);
+        setNotifications([]);
+        return;
+      }
+
+      const [fetchedShares, fetchedPings, fetchedPins, fetchedNotifs] = await Promise.all([
+        api.getShares(nextCircleId),
+        api.getPings(nextCircleId),
+        api.getMemoryPins(nextCircleId),
+        api.getNotifications(nextCircleId),
+      ]);
+
       setShares(fetchedShares);
-
-      const fetchedPings = await api.getPings(activeCircleId);
       setPings(fetchedPings);
-
-      const fetchedPins = await api.getMemoryPins(activeCircleId);
       setMemoryPins(fetchedPins);
-
-      const fetchedNotifs = await api.getNotifications(activeCircleId);
       setNotifications(fetchedNotifs);
-    } catch (err) {
-      console.error('Error loading Pulse data:', err);
+    } catch {
+      setCurrentUser(null);
+      setCircles([]);
+      setShares([]);
+      setPings([]);
+      setMemoryPins([]);
+      setNotifications([]);
+      setIsRegisterRequired(true);
+    } finally {
+      setIsBooting(false);
     }
-  }, [currentUserId, activeCircleId]);
+  }, [activeCircleId]);
 
   useEffect(() => {
-    setApiActiveUserId(currentUserId);
-    loadData();
-  }, [currentUserId, activeCircleId, loadData]);
-
-  // Polling every 4s
-  useEffect(() => {
-    const interval = setInterval(() => {
-      loadData();
-    }, 4000);
-
-    return () => clearInterval(interval);
+    void loadData();
   }, [loadData]);
 
+  useEffect(() => {
+    if (isRegisterRequired) return undefined;
+
+    const interval = setInterval(() => {
+      void loadData();
+    }, 8000);
+
+    return () => clearInterval(interval);
+  }, [loadData, isRegisterRequired]);
+
+  const currentUserId = currentUser?.id || '';
+  const activeCircle = circles.find((circle) => circle.id === activeCircleId) || circles[0];
   const activeUserShare = shares.find(
-    (s: LocationShare) => s.userId === currentUserId && s.circleId === activeCircleId && s.isActive
+    (share) => share.userId === currentUserId && share.circleId === activeCircleId && share.isActive
   );
-
-  const activeCircle = circles.find((c: Circle) => c.id === activeCircleId) || circles[0];
-  const currentUser = users.find((u: UserProfile) => u.id === currentUserId) || users[0];
-
-  const handleSwitchUser = (userId: string) => {
-    setCurrentUserId(userId);
-    setApiActiveUserId(userId);
-    localStorage.setItem('pulse_user_id', userId);
-  };
 
   const handleStartShare = async (
     durationMinutes: number,
@@ -162,11 +160,16 @@ export function usePulseState() {
 
   const handleDeleteAccount = async () => {
     await api.deleteAccount();
-    localStorage.removeItem('pulse_user_id');
-    setCurrentUserId('');
-    setApiActiveUserId('');
-    await loadData();
+    setCurrentUser(null);
     setIsRegisterRequired(true);
+    await loadData();
+  };
+
+  const handleLogout = async () => {
+    await api.logoutUser();
+    setCurrentUser(null);
+    setIsRegisterRequired(true);
+    await loadData();
   };
 
   const handleUpdateAccount = async (displayName: string, email: string) => {
@@ -175,15 +178,13 @@ export function usePulseState() {
   };
 
   const handleRegisterSuccess = async (newUser: UserProfile) => {
-    setCurrentUserId(newUser.id);
-    setApiActiveUserId(newUser.id);
-    localStorage.setItem('pulse_user_id', newUser.id);
+    setCurrentUser(newUser);
     setIsRegisterRequired(false);
     await loadData();
   };
 
   return {
-    users,
+    users: currentUser ? [currentUser] : [],
     currentUserId,
     currentUser,
     circles,
@@ -196,7 +197,7 @@ export function usePulseState() {
     notifications,
     activeUserShare,
     isRegisterRequired,
-    handleSwitchUser,
+    isBooting,
     handleStartShare,
     handleStopShare,
     handleSendPing,
@@ -205,6 +206,7 @@ export function usePulseState() {
     handleCreateCircle,
     handleJoinCircle,
     handleDeleteAccount,
+    handleLogout,
     handleUpdateAccount,
     handleRegisterSuccess,
     loadData,

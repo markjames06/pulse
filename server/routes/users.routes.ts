@@ -1,114 +1,201 @@
 import { Router, Request, Response } from 'express';
-import { users, circles, locationShares } from '../store/db';
-import { getAuthUserId } from '../middleware/auth.middleware';
-import { sanitizeText } from '../utils/sanitizer';
-import { UserProfile } from '../../src/types';
+import { z } from 'zod';
+import { users, circles, locationShares, pings, memoryPins, notifications } from '../store/db.js';
+import { getAuthUserId, requireAuth } from '../middleware/auth.middleware.js';
+import { rateLimiter } from '../middleware/rateLimiter.js';
+import { sanitizeText } from '../utils/sanitizer.js';
+import { hashPassword, verifyPassword } from '../utils/password.js';
+import { publicUser, safeAvatarColor } from '../utils/publicUser.js';
+import { clearSessionCookie, setSessionCookie } from '../middleware/session.js';
+import { persistStore } from '../store/persist.js';
+import { Circle, UserProfile } from '../../src/types/index.js';
 
 export const usersRouter = Router();
 
-usersRouter.get('/api/users', (_req: Request, res: Response) => {
-  res.json(Array.from(users.values()));
+const registerSchema = z.object({
+  displayName: z.string().trim().min(2).max(50),
+  email: z.string().trim().email().max(120),
+  password: z.string().min(8).max(72),
+  avatarColor: z.string().optional(),
 });
 
-usersRouter.get('/api/auth/me', (req: Request, res: Response) => {
-  const userId = getAuthUserId(req);
-  const user = users.get(userId);
-  if (!user) return res.status(404).json({ error: 'User not found' });
-  res.json(user);
+const loginSchema = z.object({
+  email: z.string().trim().email().max(120),
+  password: z.string().min(8).max(72),
 });
 
-usersRouter.put('/api/auth/me', (req: Request, res: Response) => {
+const updateAccountSchema = z
+  .object({
+    displayName: z.string().trim().min(2).max(50).optional(),
+    email: z.string().trim().email().max(120).optional(),
+    avatarColor: z.string().optional(),
+  })
+  .refine((data) => Object.values(data).some((value) => value !== undefined), {
+    message: 'Provide at least one account detail to update',
+  });
+
+function createPersonalCircle(user: UserProfile): Circle {
+  const circleId = `circ_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+  const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+  const circle: Circle = {
+    id: circleId,
+    name: `${user.displayName.split(' ')[0]}'s Circle`,
+    ownerId: user.id,
+    inviteCode,
+    createdAt: new Date().toISOString(),
+    members: [
+      {
+        circleId,
+        userId: user.id,
+        role: 'owner',
+        joinedAt: new Date().toISOString(),
+        profile: publicUser(user),
+      },
+    ],
+  };
+
+  circles.set(circleId, circle);
+  return circle;
+}
+
+usersRouter.post(
+  '/api/auth/register',
+  rateLimiter(8, 15 * 60 * 1000),
+  async (req: Request, res: Response) => {
+    const parsed = registerSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: parsed.error.issues[0].message });
+    }
+
+    const email = parsed.data.email.toLowerCase();
+    const existingUser = Array.from(users.values()).find((user) => user.email === email);
+    if (existingUser) {
+      return res.status(409).json({ error: 'An account with this email already exists' });
+    }
+
+    const newId = `usr_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const newUser: UserProfile = {
+      id: newId,
+      displayName: sanitizeText(parsed.data.displayName)!,
+      email,
+      avatarColor: safeAvatarColor(parsed.data.avatarColor),
+      createdAt: new Date().toISOString(),
+      passwordHash: await hashPassword(parsed.data.password),
+    };
+
+    users.set(newId, newUser);
+    createPersonalCircle(newUser);
+    await persistStore();
+    setSessionCookie(res, newId);
+
+    res.status(201).json(publicUser(newUser));
+  }
+);
+
+usersRouter.post(
+  '/api/auth/login',
+  rateLimiter(10, 15 * 60 * 1000),
+  async (req: Request, res: Response) => {
+    const parsed = loginSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: parsed.error.issues[0].message });
+    }
+
+    const email = parsed.data.email.toLowerCase();
+    const existingUser = Array.from(users.values()).find((user) => user.email === email);
+    const passwordOk = await verifyPassword(parsed.data.password, existingUser?.passwordHash);
+
+    if (!existingUser || !passwordOk) {
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+
+    setSessionCookie(res, existingUser.id);
+    res.json(publicUser(existingUser));
+  }
+);
+
+usersRouter.post('/api/auth/logout', (_req: Request, res: Response) => {
+  clearSessionCookie(res);
+  res.json({ success: true });
+});
+
+usersRouter.get('/api/auth/me', requireAuth, (req: Request, res: Response) => {
+  const user = users.get(getAuthUserId(req));
+  if (!user) return res.status(401).json({ error: 'Please sign in to continue' });
+  res.json(publicUser(user));
+});
+
+usersRouter.put('/api/auth/me', requireAuth, (req: Request, res: Response) => {
   const userId = getAuthUserId(req);
   const user = users.get(userId);
-  if (!user) return res.status(404).json({ error: 'User not found' });
+  if (!user) return res.status(401).json({ error: 'Please sign in to continue' });
 
-  const { displayName, email, avatarColor } = req.body;
-  if (displayName) user.displayName = sanitizeText(displayName)!;
-  if (email) user.email = email.trim().toLowerCase();
-  if (avatarColor) user.avatarColor = avatarColor;
+  const parsed = updateAccountSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ error: parsed.error.issues[0].message });
+  }
+
+  const { displayName, email, avatarColor } = parsed.data;
+  if (displayName !== undefined) user.displayName = sanitizeText(displayName)!;
+  if (email !== undefined) {
+    const nextEmail = email.toLowerCase();
+    const taken = Array.from(users.values()).some(
+      (candidate) => candidate.email === nextEmail && candidate.id !== userId
+    );
+    if (taken) {
+      return res.status(409).json({ error: 'That email is already in use' });
+    }
+    user.email = nextEmail;
+  }
+  if (avatarColor !== undefined) user.avatarColor = safeAvatarColor(avatarColor);
+
+  const safe = publicUser(user);
 
   for (const circle of circles.values()) {
     for (const member of circle.members) {
       if (member.userId === userId) {
-        member.profile = { ...user };
+        member.profile = safe;
       }
     }
   }
 
   for (const share of locationShares.values()) {
     if (share.userId === userId) {
-      share.userProfile = { ...user };
+      share.userProfile = safe;
     }
   }
 
-  res.json(user);
+  res.json(safe);
 });
 
-usersRouter.post('/api/auth/register', (req: Request, res: Response) => {
-  const { displayName, email, avatarColor } = req.body;
-  if (!displayName || !email) {
-    return res.status(400).json({ error: 'Display name and email are required' });
-  }
-
-  const trimmedEmail = email.trim().toLowerCase();
-
-  const existingUser = Array.from(users.values()).find((u) => u.email === trimmedEmail);
-  if (existingUser) {
-    if (displayName) existingUser.displayName = sanitizeText(displayName)!;
-    if (avatarColor) existingUser.avatarColor = avatarColor;
-
-    for (const circle of circles.values()) {
-      if (!circle.members.some((m) => m.userId === existingUser.id)) {
-        circle.members.push({
-          circleId: circle.id,
-          userId: existingUser.id,
-          role: 'member',
-          joinedAt: new Date().toISOString(),
-          profile: existingUser,
-        });
-      }
-    }
-
-    return res.json(existingUser);
-  }
-
-  const sanitizedName = sanitizeText(displayName)!;
-  const newId = `usr_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-  const newUser: UserProfile = {
-    id: newId,
-    displayName: sanitizedName,
-    email: trimmedEmail,
-    avatarColor: avatarColor || 'bg-indigo-600',
-    createdAt: new Date().toISOString(),
-  };
-
-  users.set(newId, newUser);
-
-  for (const circle of circles.values()) {
-    circle.members.push({
-      circleId: circle.id,
-      userId: newId,
-      role: 'member',
-      joinedAt: new Date().toISOString(),
-      profile: newUser,
-    });
-  }
-
-  res.status(201).json(newUser);
-});
-
-usersRouter.delete('/api/user/account', (req: Request, res: Response) => {
+usersRouter.delete('/api/user/account', requireAuth, (req: Request, res: Response) => {
   const userId = getAuthUserId(req);
 
   for (const [id, share] of locationShares.entries()) {
     if (share.userId === userId) locationShares.delete(id);
   }
 
-  for (const circle of circles.values()) {
-    circle.members = circle.members.filter((m) => m.userId !== userId);
+  for (const [circleId, circle] of circles.entries()) {
+    circle.members = circle.members.filter((member) => member.userId !== userId);
+    if (circle.members.length === 0) {
+      circles.delete(circleId);
+    }
+  }
+
+  for (let index = pings.length - 1; index >= 0; index -= 1) {
+    if (pings[index].senderId === userId) pings.splice(index, 1);
+  }
+
+  for (let index = memoryPins.length - 1; index >= 0; index -= 1) {
+    if (memoryPins[index].createdBy === userId) memoryPins.splice(index, 1);
+  }
+
+  for (let index = notifications.length - 1; index >= 0; index -= 1) {
+    if (notifications[index].body.includes(userId)) notifications.splice(index, 1);
   }
 
   users.delete(userId);
+  clearSessionCookie(res);
 
   res.json({ success: true, message: 'Account and all associated location history purged' });
 });

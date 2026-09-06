@@ -1,60 +1,34 @@
-let currentActiveUserId =
-  typeof localStorage !== 'undefined'
-    ? localStorage.getItem('pulse_user_id') || ''
-    : '';
-
-export function setApiActiveUserId(userId: string) {
-  currentActiveUserId = userId;
-
-  if (typeof localStorage !== 'undefined') {
-    localStorage.setItem('pulse_user_id', userId);
-  }
-}
-
-export function getApiActiveUserId() {
-  return currentActiveUserId;
-}
-
 export async function apiFetch<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
   const headers = new Headers(options.headers || {});
+  const hasBody = options.body !== undefined;
 
-  headers.set('Content-Type', 'application/json');
-
-  if (currentActiveUserId) {
-    headers.set('x-user-id', currentActiveUserId);
+  if (hasBody && !headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json');
   }
 
   const response = await fetch(endpoint, {
     ...options,
+    credentials: 'include',
     headers,
   });
 
   const contentType = response.headers.get('content-type');
-
-  const isJson =
-    contentType && contentType.includes('application/json');
+  const isJson = Boolean(contentType && contentType.includes('application/json'));
 
   if (!response.ok) {
     if (isJson) {
-      const errorData = await response
-        .json()
-        .catch(() => ({ error: 'Request failed' }));
-
-      throw new Error(
-        errorData.error || `HTTP ${response.status}`
-      );
+      const errorData = await response.json().catch(() => ({ error: 'Request failed' }));
+      throw new Error(errorData.error || `HTTP ${response.status}`);
     }
 
     throw new Error(`Server error HTTP ${response.status}`);
   }
 
   if (!isJson) {
-    throw new Error(
-      `API ${endpoint} returned HTML instead of JSON. The local or Vercel API route is not reachable.`
-    );
+    throw new Error(`API ${endpoint} returned an unexpected response.`);
   }
 
   return response.json() as Promise<T>;

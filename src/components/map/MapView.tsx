@@ -10,7 +10,7 @@ import {
 } from './mapUtils';
 import { MapControls } from './MapControls';
 import { MapOverlayActions } from './MapOverlayActions';
-import { formatTimeAgo } from '../../utils/formatters';
+import { formatTimeAgo, escapeHtml } from '../../utils/formatters';
 
 export interface MapViewProps {
   shares: LocationShare[];
@@ -154,15 +154,15 @@ export const MapView: React.FC<MapViewProps> = ({
         const popupContent = `
           <div class="p-2 min-w-[200px]">
             <div class="flex items-center gap-2 mb-2">
-              <div class="w-8 h-8 rounded-full ${share.userProfile?.avatarColor || 'bg-indigo-600'} text-white font-bold text-xs flex items-center justify-center">
-                ${share.userProfile?.displayName ? share.userProfile.displayName[0] : 'U'}
+              <div class="w-8 h-8 rounded-full ${escapeHtml(share.userProfile?.avatarColor || 'bg-zinc-800')} text-white font-bold text-xs flex items-center justify-center">
+                ${escapeHtml(share.userProfile?.displayName ? share.userProfile.displayName[0] : 'U')}
               </div>
               <div>
-                <h4 class="font-bold text-sm text-slate-100">${share.userProfile?.displayName || 'User'}</h4>
+                <h4 class="font-bold text-sm text-slate-100">${escapeHtml(share.userProfile?.displayName || 'User')}</h4>
                 <p class="text-[10px] text-slate-400">Sharing Live Location</p>
               </div>
             </div>
-            ${share.label ? `<p class="text-xs text-indigo-300 font-medium mb-1">🏷️ ${share.label}</p>` : ''}
+            ${share.label ? `<p class="text-xs text-indigo-300 font-medium mb-1">${escapeHtml(share.label)}</p>` : ''}
             <div class="text-[11px] text-slate-400 flex items-center justify-between border-t border-slate-700/50 pt-2 mt-2">
               <span>Expires ${formatTimeAgo(share.expiresAt)}</span>
               ${isSelf ? '<span class="text-emerald-400 font-bold">(You)</span>' : ''}
@@ -190,9 +190,9 @@ export const MapView: React.FC<MapViewProps> = ({
           <div class="p-2 min-w-[200px]">
             <div class="flex items-center gap-2 mb-1.5">
               <span class="text-rose-400 text-base">⚡</span>
-              <h4 class="font-bold text-xs text-rose-300">Ping from ${ping.senderProfile?.displayName || 'Circle Member'}</h4>
+              <h4 class="font-bold text-xs text-rose-300">Ping from ${escapeHtml(ping.senderProfile?.displayName || 'Circle Member')}</h4>
             </div>
-            <p class="text-xs text-slate-200 bg-slate-800/80 p-2 rounded-lg border border-white/5 mb-2">"${ping.message}"</p>
+            <p class="text-xs text-slate-200 bg-slate-800/80 p-2 rounded-lg border border-white/5 mb-2">${escapeHtml(ping.message)}</p>
             <span class="text-[10px] text-slate-400">${formatTimeAgo(ping.createdAt)}</span>
           </div>
         `;
@@ -214,10 +214,10 @@ export const MapView: React.FC<MapViewProps> = ({
         const popupContent = `
           <div class="p-2 min-w-[200px]">
             <div class="flex items-center gap-2 mb-1">
-              <span class="text-xl">${pin.emoji || '📍'}</span>
-              <h4 class="font-bold text-sm text-slate-100">${pin.caption}</h4>
+              <span class="text-xl">${escapeHtml(pin.emoji || '📍')}</span>
+              <h4 class="font-bold text-sm text-slate-100">${escapeHtml(pin.caption)}</h4>
             </div>
-            <p class="text-[11px] text-slate-400 mb-2">Saved by ${pin.creatorProfile?.displayName || 'Member'}</p>
+            <p class="text-[11px] text-slate-400 mb-2">Saved by ${escapeHtml(pin.creatorProfile?.displayName || 'Member')}</p>
             <span class="text-[10px] text-amber-400/80">${formatTimeAgo(pin.createdAt)}</span>
           </div>
         `;
@@ -244,7 +244,7 @@ export const MapView: React.FC<MapViewProps> = ({
   };
 
   return (
-    <div className="w-full h-[calc(100vh-4rem)] relative overflow-hidden bg-slate-950">
+    <div className="w-full h-[calc(100dvh-3.5rem)] md:h-[calc(100dvh-3.5rem)] relative overflow-hidden bg-zinc-950">
       {/* Map Element Container */}
       <div ref={mapContainerRef} className="w-full h-full z-0" />
 

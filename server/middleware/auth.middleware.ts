@@ -1,16 +1,22 @@
-import { Request } from 'express';
-import { users } from '../store/db';
+import { Request, Response, NextFunction } from 'express';
+import { users } from '../store/db.js';
+import { getTokenFromRequest, readSessionUserId } from './session.js';
 
 export function getAuthUserId(req: Request): string {
-  const userId = req.headers['x-user-id'];
+  const userId = readSessionUserId(getTokenFromRequest(req));
 
-  if (typeof userId !== 'string' || !userId.trim()) {
-    return '';
-  }
-
-  if (!users.has(userId)) {
+  if (!userId || !users.has(userId)) {
     return '';
   }
 
   return userId;
+}
+
+export function requireAuth(req: Request, res: Response, next: NextFunction) {
+  const userId = getAuthUserId(req);
+  if (!userId) {
+    return res.status(401).json({ error: 'Please sign in to continue' });
+  }
+
+  next();
 }

@@ -5,4 +5,5 @@ export interface UserProfile {
   avatarUrl?: string;
   avatarColor: string;
   createdAt: string;
+  passwordHash?: string;
 }
