@@ -1,10 +1,12 @@
+import 'dotenv/config';
 import { createServer as createViteServer } from 'vite';
 import app from './server/app';
 
 const PORT = Number(process.env.PORT) || 3000;
+const isProduction = process.env.NODE_ENV === 'production';
 
 async function startServer() {
-  if (process.env.NODE_ENV !== 'production') {
+  if (!isProduction) {
     const vite = await createViteServer({
       server: {
         middlewareMode: true,
@@ -15,8 +17,13 @@ async function startServer() {
     app.use(vite.middlewares);
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Pulse server running on http://localhost:${PORT}`);
+  await new Promise<void>((resolve, reject) => {
+    const server = app.listen(PORT, '0.0.0.0', () => {
+      console.log(`Pulse server running on http://localhost:${PORT}`);
+      resolve();
+    });
+
+    server.on('error', reject);
   });
 }
 

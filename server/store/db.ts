@@ -7,17 +7,38 @@ import {
   NotificationItem,
 } from '../../src/types';
 
-export const users: Map<string, UserProfile> = new Map();
+type PulseMemoryStore = {
+  users: Map<string, UserProfile>;
+  circles: Map<string, Circle>;
+  locationShares: Map<string, LocationShare>;
+  pings: Ping[];
+  memoryPins: MemoryPin[];
+  notifications: NotificationItem[];
+  seeded: boolean;
+};
 
-export const circles: Map<string, Circle> = new Map();
+const globalStore = globalThis as typeof globalThis & {
+  __pulseStore?: PulseMemoryStore;
+};
 
-export const locationShares: Map<string, LocationShare> = new Map();
+if (!globalStore.__pulseStore) {
+  globalStore.__pulseStore = {
+    users: new Map(),
+    circles: new Map(),
+    locationShares: new Map(),
+    pings: [],
+    memoryPins: [],
+    notifications: [],
+    seeded: false,
+  };
+}
 
-export const pings: Ping[] = [];
-
-export const memoryPins: MemoryPin[] = [];
-
-export const notifications: NotificationItem[] = [];
+export const users = globalStore.__pulseStore.users;
+export const circles = globalStore.__pulseStore.circles;
+export const locationShares = globalStore.__pulseStore.locationShares;
+export const pings = globalStore.__pulseStore.pings;
+export const memoryPins = globalStore.__pulseStore.memoryPins;
+export const notifications = globalStore.__pulseStore.notifications;
 
 export function seedData() {
   users.clear();
@@ -55,6 +76,9 @@ export function seedData() {
   };
 
   circles.set(familyCircle.id, familyCircle);
+  globalStore.__pulseStore!.seeded = true;
 }
 
-seedData();
+if (!globalStore.__pulseStore.seeded || users.size === 0) {
+  seedData();
+}

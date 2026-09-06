@@ -2,6 +2,25 @@ import L from 'leaflet';
 import { LocationShare, MemoryPin, Ping } from '../../types';
 import { getInitials } from '../../utils/formatters';
 
+const OSM_TILE_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+
+const OSM_TILE_OPTIONS: L.TileLayerOptions = {
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+  subdomains: 'abc',
+  maxZoom: 19,
+};
+
+export function applyMapTiles(map: L.Map, tileMode: 'dark' | 'street') {
+  map.eachLayer((layer) => {
+    if (layer instanceof L.TileLayer) {
+      map.removeLayer(layer);
+    }
+  });
+
+  L.tileLayer(OSM_TILE_URL, OSM_TILE_OPTIONS).addTo(map);
+  map.getContainer().classList.toggle('pulse-dark-tiles', tileMode === 'dark');
+}
+
 export function createDeviceGpsIcon(): L.DivIcon {
   return L.divIcon({
     className: 'custom-div-icon',

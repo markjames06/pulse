@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import { LocationShare, MemoryPin, Ping } from '../../types';
 import {
+  applyMapTiles,
   createDeviceGpsIcon,
   createLocationShareIcon,
   createMemoryPinIcon,
@@ -93,16 +94,7 @@ export const MapView: React.FC<MapViewProps> = ({
 
     L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-    const darkTiles = L.tileLayer(
-      'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-      {
-        attribution: '&copy; OpenStreetMap &copy; CARTO',
-        subdomains: 'abcd',
-        maxZoom: 20,
-      }
-    );
-
-    darkTiles.addTo(map);
+    applyMapTiles(map, tileMode);
     mapInstanceRef.current = map;
 
     const layerGroup = L.layerGroup().addTo(map);
@@ -131,22 +123,7 @@ export const MapView: React.FC<MapViewProps> = ({
   // 2. Handle Tile Layer Switch
   useEffect(() => {
     if (!mapInstanceRef.current) return;
-
-    mapInstanceRef.current.eachLayer((layer) => {
-      if (layer instanceof L.TileLayer) {
-        mapInstanceRef.current?.removeLayer(layer);
-      }
-    });
-
-    const url =
-      tileMode === 'dark'
-        ? 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'
-        : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-
-    L.tileLayer(url, {
-      attribution: '&copy; OpenStreetMap contributors',
-      maxZoom: 19,
-    }).addTo(mapInstanceRef.current);
+    applyMapTiles(mapInstanceRef.current, tileMode);
   }, [tileMode]);
 
   // 3. Render Markers when data or visibility changes

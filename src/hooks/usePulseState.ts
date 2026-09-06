@@ -22,13 +22,18 @@ export function usePulseState() {
       const fetchedUsers = await api.getUsers();
       setUsers(fetchedUsers);
 
+      let activeUserId = currentUserId;
+
       if (fetchedUsers.length === 0) {
         setIsRegisterRequired(true);
-      } else if (!currentUserId || !fetchedUsers.some((u: UserProfile) => u.id === currentUserId)) {
+      } else if (!activeUserId || !fetchedUsers.some((u: UserProfile) => u.id === activeUserId)) {
         const defaultUser = fetchedUsers[0];
+        activeUserId = defaultUser.id;
         setCurrentUserId(defaultUser.id);
         setApiActiveUserId(defaultUser.id);
         localStorage.setItem('pulse_user_id', defaultUser.id);
+      } else {
+        setApiActiveUserId(activeUserId);
       }
 
       const fetchedCircles = await api.getCircles();

@@ -53,7 +53,7 @@ export async function apiFetch<T>(
 
   if (!isJson) {
     throw new Error(
-      `Invalid non-JSON response from ${endpoint}`
+      `API ${endpoint} returned HTML instead of JSON. The local or Vercel API route is not reachable.`
     );
   }
 
