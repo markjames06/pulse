@@ -17,6 +17,16 @@ export function usePulseState() {
   const loadData = useCallback(async () => {
     try {
       const me = await api.getMe();
+      if (!me) {
+        setCurrentUser(null);
+        setCircles([]);
+        setShares([]);
+        setPings([]);
+        setMemoryPins([]);
+        setNotifications([]);
+        setIsRegisterRequired(true);
+        return;
+      }
       setCurrentUser(me);
       setIsRegisterRequired(false);
 

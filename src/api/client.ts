@@ -1,3 +1,13 @@
+export class ApiError extends Error {
+  status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+  }
+}
+
 export async function apiFetch<T>(
   endpoint: string,
   options: RequestInit = {}
@@ -21,10 +31,10 @@ export async function apiFetch<T>(
   if (!response.ok) {
     if (isJson) {
       const errorData = await response.json().catch(() => ({ error: 'Request failed' }));
-      throw new Error(errorData.error || `HTTP ${response.status}`);
+      throw new ApiError(errorData.error || `HTTP ${response.status}`, response.status);
     }
 
-    throw new Error(`Server error HTTP ${response.status}`);
+    throw new ApiError(`Server error HTTP ${response.status}`, response.status);
   }
 
   if (!isJson) {

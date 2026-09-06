@@ -1,8 +1,17 @@
-import { apiFetch } from './client';
+import { apiFetch, ApiError } from './client';
 import { UserProfile } from '../types';
 
 export const usersApi = {
-  getMe: () => apiFetch<UserProfile>('/api/auth/me'),
+  getMe: async () => {
+    try {
+      return await apiFetch<UserProfile>('/api/auth/me');
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        return null;
+      }
+      throw error;
+    }
+  },
   loginUser: (data: { email: string; password: string }) =>
     apiFetch<UserProfile>('/api/auth/login', {
       method: 'POST',
