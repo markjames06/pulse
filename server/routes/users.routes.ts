@@ -114,6 +114,12 @@ usersRouter.post(
   }
 );
 
+usersRouter.get('/api/auth/session', (req: Request, res: Response) => {
+  const userId = getAuthUserId(req);
+  const user = userId ? users.get(userId) : undefined;
+  res.json(user ? publicUser(user) : null);
+});
+
 usersRouter.post('/api/auth/logout', (_req: Request, res: Response) => {
   clearSessionCookie(res);
   res.json({ success: true });

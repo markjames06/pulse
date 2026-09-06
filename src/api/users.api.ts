@@ -4,11 +4,9 @@ import { UserProfile } from '../types';
 export const usersApi = {
   getMe: async () => {
     try {
-      return await apiFetch<UserProfile>('/api/auth/me');
+      return await apiFetch<UserProfile | null>('/api/auth/session');
     } catch (error) {
-      if (error instanceof ApiError && error.status === 401) {
-        return null;
-      }
+      if (error instanceof ApiError && error.status === 401) return null;
       throw error;
     }
   },
