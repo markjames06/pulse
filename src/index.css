@@ -161,6 +161,9 @@
     transition: color .18s ease, background-color .18s ease, border-color .18s ease, transform .18s ease;
   }
   .pin-icon-option.is-selected { background: #2855ff; border-color: #2855ff; color: #fff; box-shadow: 0 4px 10px rgba(40,85,255,.18); }
+  .color-option { width: 32px !important; height: 32px !important; min-height: 32px !important; padding: 0 !important; border-radius: 999px !important; border: 2px solid transparent !important; }
+  .color-option[aria-pressed="true"] { border-color: #111318 !important; box-shadow: 0 0 0 2px #fff, 0 0 0 4px #2855ff; }
+  .password-toggle { min-height: 32px !important; border-radius: 8px !important; }
   @media (hover: hover) {
     .pin-icon-option:hover:not(.is-selected) { background: #e9ebe7; border-color: #b9beb7; color: #111318; transform: translateY(-1px); }
   }

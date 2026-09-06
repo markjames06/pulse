@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Radio } from 'lucide-react';
+import { Eye, EyeOff, X, Radio } from 'lucide-react';
 import { api } from '../../api';
 import { UserProfile } from '../../types';
 
@@ -29,14 +29,33 @@ export const RegisterAccountModal: React.FC<RegisterAccountModalProps> = ({
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [selectedColor, setSelectedColor] = useState('bg-zinc-800');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
+  const validateForm = () => {
+    if (!email.trim()) return 'Enter your email address.';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      return 'Enter a valid email address, such as name@example.com.';
+    }
+    if (!password) return 'Enter your password.';
+    if (mode === 'register') {
+      if (!displayName.trim()) return 'Enter your name.';
+      if (password.length < 8) return 'Your password must be at least 8 characters.';
+    }
+    return null;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const validationError = validateForm();
+    if (validationError) {
+      setErrorMsg(validationError);
+      return;
+    }
     setIsSubmitting(true);
     setErrorMsg(null);
 
@@ -56,7 +75,8 @@ export const RegisterAccountModal: React.FC<RegisterAccountModalProps> = ({
       setEmail('');
       setPassword('');
     } catch (err: unknown) {
-      setErrorMsg(err instanceof Error ? err.message : 'Something went wrong');
+      const message = err instanceof Error ? err.message : 'Something went wrong';
+      setErrorMsg(message === 'Invalid email or password' ? 'The email or password is incorrect.' : message);
     } finally {
       setIsSubmitting(false);
     }
@@ -115,7 +135,7 @@ export const RegisterAccountModal: React.FC<RegisterAccountModalProps> = ({
           <div className="mb-4 p-3 rounded-2xl bg-rose-50 text-rose-700 text-sm">{errorMsg}</div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-3">
+        <form onSubmit={handleSubmit} noValidate className="space-y-3">
           {mode === 'register' && (
             <input
               type="text"
@@ -137,17 +157,27 @@ export const RegisterAccountModal: React.FC<RegisterAccountModalProps> = ({
             autoComplete="email"
             className="w-full px-4 py-3 rounded-2xl bg-zinc-50 border border-black/8 text-sm focus:outline-none focus:border-zinc-900"
           />
-          <input
-            type="password"
-            placeholder={mode === 'register' ? 'Password (8+ characters)' : 'Password'}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={8}
-            maxLength={72}
-            autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-            className="w-full px-4 py-3 rounded-2xl bg-zinc-50 border border-black/8 text-sm focus:outline-none focus:border-zinc-900"
-          />
+          <div className="relative">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              placeholder={mode === 'register' ? 'Password (8+ characters)' : 'Password'}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={8}
+              maxLength={72}
+              autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+              className="w-full px-4 py-3 pr-12 rounded-2xl bg-zinc-50 border border-black/8 text-sm focus:outline-none focus:border-zinc-900"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((visible) => !visible)}
+              className="password-toggle absolute right-2 top-1/2 -translate-y-1/2 p-2 text-zinc-500 hover:text-zinc-900"
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </div>
 
           {mode === 'register' && (
             <div className="flex items-center gap-2 pt-1">
@@ -156,8 +186,9 @@ export const RegisterAccountModal: React.FC<RegisterAccountModalProps> = ({
                   type="button"
                   key={color.class}
                   aria-label={color.label}
+                  aria-pressed={selectedColor === color.class}
                   onClick={() => setSelectedColor(color.class)}
-                  className={`w-7 h-7 rounded-full ${color.class} ${
+                  className={`color-option ${color.class} ${
                     selectedColor === color.class ? 'ring-2 ring-offset-2 ring-zinc-900' : ''
                   }`}
                 />

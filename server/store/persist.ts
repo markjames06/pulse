@@ -88,19 +88,6 @@ export async function hydrateStore() {
   hydratePromise = (async () => {
     if (!redisConfig()) return;
 
-    if (process.env.PULSE_RESET_ALL_ACCOUNTS === 'true') {
-      restoreSnapshot({
-        users: [],
-        circles: [],
-        locationShares: [],
-        pings: [],
-        memoryPins: [],
-        notifications: [],
-      });
-      await redisCommand(['DEL', STORE_KEY]);
-      return;
-    }
-
     try {
       const payload = await redisCommand(['GET', STORE_KEY]);
       const raw = payload?.result;
