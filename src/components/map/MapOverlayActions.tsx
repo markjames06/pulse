@@ -29,7 +29,7 @@ export const MapOverlayActions: React.FC<MapOverlayActionsProps> = ({
         aria-label="Send ping"
       >
         <Zap className="w-4 h-4" />
-        <span className="hidden sm:inline">Ping</span>
+        <span>Ping</span>
       </button>
       <button
         type="button"
@@ -38,7 +38,7 @@ export const MapOverlayActions: React.FC<MapOverlayActionsProps> = ({
         aria-label="Add memory pin"
       >
         <MapPin className="w-4 h-4" />
-        <span className="hidden sm:inline">Pin</span>
+        <span>Pin</span>
       </button>
     </div>
   );

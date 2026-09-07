@@ -45,6 +45,8 @@
 }
 
 @media (min-width: 768px) {
+  .pulse-navbar.sidebar-open { width: 16rem; }
+  .pulse-navbar.sidebar-closed { width: 4.75rem; }
   #root > div > main.pulse-page.sidebar-open { padding-left: 16rem; }
   #root > div > main.pulse-page.sidebar-closed { padding-left: 4.75rem; }
 }
@@ -182,8 +184,6 @@
 .leaflet-marker-icon { transition: transform .8s linear; }
 
 .pulse-navbar { box-shadow: 1px 0 0 rgba(17,19,24,.02); transition: width .25s cubic-bezier(.22,1,.36,1); }
-.pulse-navbar.sidebar-open { width: 16rem; }
-.pulse-navbar.sidebar-closed { width: 4.75rem; }
 .pulse-page.sidebar-open, .pulse-page.sidebar-closed { transition: padding-left .25s cubic-bezier(.22,1,.36,1); }
 .app-shell { font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif; background: #f4f5ef; }
 .pulse-logo { display: inline-flex; align-items: center; gap: .65rem; color: #111318; }
