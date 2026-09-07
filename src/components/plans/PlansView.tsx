@@ -54,10 +54,12 @@ export const PlansView: React.FC<PlansViewProps> = ({ circleName }) => {
           const isFeatured = plan.id === 'plus';
           return (
             <article key={plan.id} className={`pulse-card relative rounded-xl border p-5 flex flex-col ${isFeatured ? 'border-blue-600 ring-2 ring-blue-600/10' : 'border-gray-200'} bg-white`}>
-              {isFeatured && <span className="absolute right-4 top-4 rounded-full bg-blue-50 px-2 py-1 text-[10px] font-bold text-blue-700">Most popular</span>}
-              <div className="flex items-center gap-2">
-                {plan.id === 'free' ? <Shield className="w-5 h-5 text-zinc-500" /> : plan.id === 'plus' ? <Sparkles className="w-5 h-5 text-blue-600" /> : <Crown className="w-5 h-5 text-amber-500" />}
-                <h3 className="font-semibold text-slate-900">{plan.name}</h3>
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-2">
+                  {plan.id === 'free' ? <Shield className="w-5 h-5 text-zinc-500 shrink-0" /> : plan.id === 'plus' ? <Sparkles className="w-5 h-5 text-blue-600 shrink-0" /> : <Crown className="w-5 h-5 text-amber-500 shrink-0" />}
+                  <h3 className="font-semibold text-slate-900">{plan.name}</h3>
+                </div>
+                {isFeatured && <span className="shrink-0 rounded-full bg-blue-50 px-2 py-1 text-[10px] font-bold leading-none text-blue-700">Most popular</span>}
               </div>
               <p className="mt-4 text-2xl font-semibold text-slate-900">{plan.price}</p>
               <p className="mt-2 min-h-10 text-xs leading-5 text-slate-500">{plan.description}</p>
