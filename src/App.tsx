@@ -16,9 +16,12 @@ import {
 import { usePulseState } from './hooks/usePulseState';
 import { useModalState } from './hooks/useModalState';
 import { UserProfile } from './types';
+import { LandingPage } from './components/LandingPage';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'map' | 'circles' | 'pings' | 'memory_pins' | 'moments' | 'plans'>('map');
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
 
   const {
     currentUserId,
@@ -87,6 +90,32 @@ export default function App() {
         </span>
         <span className="font-medium tracking-tight">Loading Pulse</span>
       </div>
+    );
+  }
+
+  if (!currentUser) {
+    return (
+      <>
+        <LandingPage
+          onCreateAccount={() => {
+            setAuthMode('register');
+            setIsAuthOpen(true);
+          }}
+          onSignIn={() => {
+            setAuthMode('login');
+            setIsAuthOpen(true);
+          }}
+        />
+        <RegisterAccountModal
+          isOpen={isAuthOpen}
+          onClose={() => setIsAuthOpen(false)}
+          onRegisterSuccess={async (user) => {
+            await onRegisterSuccess(user);
+            setIsAuthOpen(false);
+          }}
+          initialMode={authMode}
+        />
+      </>
     );
   }
 
@@ -230,8 +259,7 @@ export default function App() {
       />
 
       <RegisterAccountModal
-        isOpen={isRegisterModalOpen || isRegisterRequired}
-        required={isRegisterRequired}
+        isOpen={isRegisterModalOpen}
         onClose={() => setIsRegisterModalOpen(false)}
         onRegisterSuccess={handleRegisterSuccess}
       />

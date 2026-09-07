@@ -8,6 +8,7 @@ interface RegisterAccountModalProps {
   required?: boolean;
   onClose: () => void;
   onRegisterSuccess: (user: UserProfile) => Promise<void>;
+  initialMode?: 'login' | 'register';
 }
 
 const colorOptions = [
@@ -24,8 +25,9 @@ export const RegisterAccountModal: React.FC<RegisterAccountModalProps> = ({
   required = false,
   onClose,
   onRegisterSuccess,
+  initialMode = 'login',
 }) => {
-  const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [mode, setMode] = useState<'login' | 'register'>(initialMode);
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -33,6 +35,10 @@ export const RegisterAccountModal: React.FC<RegisterAccountModalProps> = ({
   const [selectedColor, setSelectedColor] = useState('bg-zinc-800');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (isOpen) setMode(initialMode);
+  }, [isOpen, initialMode]);
 
   if (!isOpen) return null;
 
