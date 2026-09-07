@@ -41,6 +41,7 @@ export default function App() {
     handleStopShare,
     handleSendPing,
     handleMarkAllNotificationsRead,
+    handleEnableDeviceAlerts,
     handleStartSafetyCheckIn,
     handleCompleteSafetyCheckIn,
     handleCreateMoment,
@@ -211,6 +212,7 @@ export default function App() {
         onClose={() => setIsNotificationsOpen(false)}
         notifications={notifications}
         onMarkAllRead={handleMarkAllNotificationsRead}
+        onEnableDeviceAlerts={handleEnableDeviceAlerts}
       />
 
       <SettingsModal

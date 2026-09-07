@@ -9,6 +9,13 @@ import {
   PulseMoment,
 } from '../../src/types/index.js';
 
+export type PushSubscriptionRecord = {
+  endpoint: string;
+  keys: { p256dh: string; auth: string };
+  userId: string;
+  createdAt: string;
+};
+
 type PulseMemoryStore = {
   users: Map<string, UserProfile>;
   circles: Map<string, Circle>;
@@ -18,6 +25,7 @@ type PulseMemoryStore = {
   notifications: NotificationItem[];
   safetyCheckIns: SafetyCheckIn[];
   moments: PulseMoment[];
+  pushSubscriptions: PushSubscriptionRecord[];
 };
 
 const globalStore = globalThis as typeof globalThis & {
@@ -34,6 +42,7 @@ if (!globalStore.__pulseStore) {
     notifications: [],
     safetyCheckIns: [],
     moments: [],
+    pushSubscriptions: [],
   };
 }
 
@@ -45,6 +54,7 @@ export const memoryPins = globalStore.__pulseStore.memoryPins;
 export const notifications = globalStore.__pulseStore.notifications;
 export const safetyCheckIns = globalStore.__pulseStore.safetyCheckIns;
 export const moments = globalStore.__pulseStore.moments;
+export const pushSubscriptions = globalStore.__pulseStore.pushSubscriptions;
 
 export function seedData() {
   users.clear();
@@ -54,5 +64,6 @@ export function seedData() {
   notifications.length = 0;
   safetyCheckIns.length = 0;
   moments.length = 0;
+  pushSubscriptions.length = 0;
   circles.clear();
 }

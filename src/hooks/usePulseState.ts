@@ -3,6 +3,13 @@ import { api } from '../api';
 import { Circle, LocationShare, MemoryPin, NotificationItem, Ping, PulseMoment, SafetyCheckIn, UserProfile } from '../types';
 import { getFriendlyPlaceName } from '../utils/formatters';
 
+function decodeVapidKey(value: string) {
+  const padding = '='.repeat((4 - (value.length % 4)) % 4);
+  const base64 = (value + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const raw = window.atob(base64);
+  return Uint8Array.from(raw, (character) => character.charCodeAt(0));
+}
+
 export function usePulseState() {
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [circles, setCircles] = useState<Circle[]>([]);
@@ -260,6 +267,21 @@ export function usePulseState() {
     setNotifications((current) => current.map((notification) => ({ ...notification, read: true })));
   };
 
+  const handleEnableDeviceAlerts = async () => {
+    if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) {
+      throw new Error('This browser does not support device alerts.');
+    }
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') throw new Error('Device alert permission was not granted.');
+    const { publicKey } = await api.getPublicKey();
+    const registration = await navigator.serviceWorker.ready;
+    const subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: decodeVapidKey(publicKey),
+    });
+    await api.subscribe(subscription.toJSON());
+  };
+
   const handleStartSafetyCheckIn = async (durationMinutes: number) => {
     const checkIn = await api.startSafetyCheckIn(activeCircleId, durationMinutes);
     setSafetyCheckIns((current) => [checkIn, ...current.filter((item) => item.userId !== currentUserId || item.status !== 'active')]);
@@ -358,6 +380,7 @@ export function usePulseState() {
     handleStopShare,
     handleSendPing,
     handleMarkAllNotificationsRead,
+    handleEnableDeviceAlerts,
     handleStartSafetyCheckIn,
     handleCompleteSafetyCheckIn,
     handleCreateMoment,

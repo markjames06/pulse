@@ -8,6 +8,7 @@ interface NotificationsDrawerProps {
   onClose: () => void;
   notifications: NotificationItem[];
   onMarkAllRead: () => Promise<void>;
+  onEnableDeviceAlerts: () => Promise<void>;
 }
 
 export const NotificationsDrawer: React.FC<NotificationsDrawerProps> = ({
@@ -15,6 +16,7 @@ export const NotificationsDrawer: React.FC<NotificationsDrawerProps> = ({
   onClose,
   notifications,
   onMarkAllRead,
+  onEnableDeviceAlerts,
 }) => {
   if (!isOpen) return null;
 
@@ -74,6 +76,15 @@ export const NotificationsDrawer: React.FC<NotificationsDrawerProps> = ({
               </button>
             </div>
           </div>
+
+          <button
+            type="button"
+            onClick={() => void onEnableDeviceAlerts()}
+            className="mx-4 mt-3 rounded-xl border border-blue-100 bg-blue-50 px-3 py-2 text-left text-[11px] font-semibold text-blue-700"
+          >
+            Enable device alerts
+            <span className="block mt-0.5 font-normal text-blue-600/80">Get important circle updates even when Pulse is closed.</span>
+          </button>
 
           {/* List */}
           <div className="flex-1 overflow-y-auto p-4 space-y-3">

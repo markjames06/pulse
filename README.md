@@ -85,3 +85,11 @@ npm run build
 - **Memory Pins**: Bookmark memorable places, coffee spots, and meetups on the interactive map.
 - **Interactive Map Controls**: Toggle map themes (Dark Voyager / OpenStreetMap), center on device GPS location, and toggle category layer visibility.
 - **Privacy & Security**: Built-in rate limiting, HTML input sanitization, and instant account data purge capability.
+
+### Device notifications
+
+Pulse uses Web Push for alerts when the app is closed. Copy `.env.example` to `.env` and set `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, and `VAPID_SUBJECT`. Generate a key pair with:
+
+```bash
+npx web-push generate-vapid-keys
+```
