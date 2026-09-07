@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from '../api';
-import { Circle, LocationShare, MemoryPin, NotificationItem, Ping, UserProfile } from '../types';
+import { Circle, LocationShare, MemoryPin, NotificationItem, Ping, SafetyCheckIn, UserProfile } from '../types';
 import { getFriendlyPlaceName } from '../utils/formatters';
 
 export function usePulseState() {
@@ -11,6 +11,7 @@ export function usePulseState() {
   const [pings, setPings] = useState<Ping[]>([]);
   const [memoryPins, setMemoryPins] = useState<MemoryPin[]>([]);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [safetyCheckIns, setSafetyCheckIns] = useState<SafetyCheckIn[]>([]);
   const [isRegisterRequired, setIsRegisterRequired] = useState(false);
   const [isBooting, setIsBooting] = useState(true);
   const [realtimeStatus, setRealtimeStatus] = useState<'connecting' | 'live' | 'reconnecting'>('connecting');
@@ -26,6 +27,7 @@ export function usePulseState() {
         setPings([]);
         setMemoryPins([]);
         setNotifications([]);
+        setSafetyCheckIns([]);
         setIsRegisterRequired(true);
         return;
       }
@@ -49,20 +51,23 @@ export function usePulseState() {
         setPings([]);
         setMemoryPins([]);
         setNotifications([]);
+        setSafetyCheckIns([]);
         return;
       }
 
-      const [fetchedShares, fetchedPings, fetchedPins, fetchedNotifs] = await Promise.all([
+      const [fetchedShares, fetchedPings, fetchedPins, fetchedNotifs, fetchedCheckIns] = await Promise.all([
         api.getShares(nextCircleId),
         api.getPings(nextCircleId),
         api.getMemoryPins(nextCircleId),
         api.getNotifications(nextCircleId),
+        api.getSafetyCheckIns(nextCircleId),
       ]);
 
       setShares(fetchedShares);
       setPings(fetchedPings);
       setMemoryPins(fetchedPins);
       setNotifications(fetchedNotifs);
+      setSafetyCheckIns(fetchedCheckIns);
       notificationIdsRef.current = new Set(fetchedNotifs.map((notification) => notification.id));
     } catch {
       setCurrentUser(null);
@@ -71,6 +76,7 @@ export function usePulseState() {
       setPings([]);
       setMemoryPins([]);
       setNotifications([]);
+      setSafetyCheckIns([]);
       setIsRegisterRequired(true);
     } finally {
       setIsBooting(false);
@@ -103,6 +109,7 @@ export function usePulseState() {
         ping?: Ping;
         notification?: NotificationItem;
         share?: LocationShare;
+        checkIn?: SafetyCheckIn;
       };
       if (event.ping) {
         setPings((current) => [event.ping!, ...current.filter((ping) => ping.id !== event.ping!.id)]);
@@ -133,6 +140,9 @@ export function usePulseState() {
       if (event.share) {
         setShares((current) => [event.share!, ...current.filter((share) => share.id !== event.share!.id)]);
       }
+      if (event.checkIn) {
+        setSafetyCheckIns((current) => [event.checkIn!, ...current.filter((item) => item.id !== event.checkIn!.id)]);
+      }
     };
 
     return () => {
@@ -145,6 +155,9 @@ export function usePulseState() {
   const activeCircle = circles.find((circle) => circle.id === activeCircleId) || circles[0];
   const activeUserShare = shares.find(
     (share) => share.userId === currentUserId && share.circleId === activeCircleId && share.isActive
+  );
+  const activeUserCheckIn = safetyCheckIns.find(
+    (checkIn) => checkIn.userId === currentUserId && checkIn.status === 'active'
   );
 
   useEffect(() => {
@@ -237,6 +250,16 @@ export function usePulseState() {
     setNotifications((current) => current.map((notification) => ({ ...notification, read: true })));
   };
 
+  const handleStartSafetyCheckIn = async (durationMinutes: number) => {
+    const checkIn = await api.startSafetyCheckIn(activeCircleId, durationMinutes);
+    setSafetyCheckIns((current) => [checkIn, ...current.filter((item) => item.userId !== currentUserId || item.status !== 'active')]);
+  };
+
+  const handleCompleteSafetyCheckIn = async (checkInId: string) => {
+    const checkIn = await api.completeSafetyCheckIn(checkInId);
+    setSafetyCheckIns((current) => current.map((item) => item.id === checkIn.id ? checkIn : item));
+  };
+
   const handleSaveMemoryPin = async (
     caption: string,
     emoji: string,
@@ -309,6 +332,8 @@ export function usePulseState() {
     pings,
     memoryPins,
     notifications,
+    safetyCheckIns,
+    activeUserCheckIn,
     realtimeStatus,
     activeUserShare,
     isRegisterRequired,
@@ -317,6 +342,8 @@ export function usePulseState() {
     handleStopShare,
     handleSendPing,
     handleMarkAllNotificationsRead,
+    handleStartSafetyCheckIn,
+    handleCompleteSafetyCheckIn,
     handleSaveMemoryPin,
     handleDeleteMemoryPin,
     handleCreateCircle,

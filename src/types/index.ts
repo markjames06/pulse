@@ -4,3 +4,4 @@ export * from './share.types.js';
 export * from './ping.types.js';
 export * from './memoryPin.types.js';
 export * from './notification.types.js';
+export * from './checkIn.types.js';

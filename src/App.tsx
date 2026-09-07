@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Navbar, ActiveShareBanner, NotificationsDrawer } from './components/layout';
+import { Navbar, ActiveShareBanner, NotificationsDrawer, SafetyCheckInPanel } from './components/layout';
 import { MapView } from './components/map';
 import { CirclesManager } from './components/circles';
 import { PingsList } from './components/pings';
@@ -31,12 +31,16 @@ export default function App() {
     notifications,
     realtimeStatus,
     activeUserShare,
+    safetyCheckIns,
+    activeUserCheckIn,
     isRegisterRequired,
     isBooting,
     handleStartShare,
     handleStopShare,
     handleSendPing,
     handleMarkAllNotificationsRead,
+    handleStartSafetyCheckIn,
+    handleCompleteSafetyCheckIn,
     handleSaveMemoryPin,
     handleDeleteMemoryPin,
     handleCreateCircle,
@@ -103,6 +107,16 @@ export default function App() {
 
       {activeUserShare && (
         <ActiveShareBanner activeShare={activeUserShare} onStopShare={handleStopShare} />
+      )}
+
+      {activeTab === 'map' && activeCircleId && (
+        <SafetyCheckInPanel
+          checkIns={safetyCheckIns}
+          currentUserId={currentUserId}
+          ownCheckIn={activeUserCheckIn}
+          onStart={handleStartSafetyCheckIn}
+          onComplete={handleCompleteSafetyCheckIn}
+        />
       )}
 
       <main

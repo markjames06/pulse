@@ -4,6 +4,7 @@ import { sharesApi } from './shares.api';
 import { pingsApi } from './pings.api';
 import { memoryPinsApi } from './memoryPins.api';
 import { notificationsApi } from './notifications.api';
+import { checkInsApi } from './checkIns.api';
 
 export const api = {
   ...usersApi,
@@ -12,4 +13,5 @@ export const api = {
   ...pingsApi,
   ...memoryPinsApi,
   ...notificationsApi,
+  ...checkInsApi,
 };

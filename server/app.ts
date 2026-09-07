@@ -8,10 +8,12 @@ import { sharesRouter } from './routes/shares.routes.js';
 import { pingsRouter } from './routes/pings.routes.js';
 import { memoryPinsRouter } from './routes/memoryPins.routes.js';
 import { notificationsRouter } from './routes/notifications.routes.js';
-import { locationShares } from './store/db.js';
+import { checkInsRouter } from './routes/checkIns.routes.js';
+import { circles, locationShares, notifications, safetyCheckIns, users } from './store/db.js';
 import { hydrateStore, persistStore } from './store/persist.js';
 import { securityHeaders } from './middleware/security.middleware.js';
 import { rateLimiter } from './middleware/rateLimiter.js';
+import { publishCircleEvent } from './store/events.js';
 
 const app = express();
 
@@ -54,6 +56,25 @@ if (!isVercel) {
         locationShares.delete(id);
       }
     }
+
+    for (const checkIn of safetyCheckIns) {
+      if (checkIn.status !== 'active' || new Date(checkIn.expiresAt).getTime() > Date.now()) continue;
+      checkIn.status = 'missed';
+      const user = users.get(checkIn.userId);
+      const circle = circles.get(checkIn.circleId);
+      if (!user || !circle) continue;
+      const notification = {
+        id: `notif_checkin_${checkIn.id}`,
+        circleId: checkIn.circleId,
+        type: 'check_in_missed' as const,
+        title: `${user.displayName} missed a safety check-in`,
+        body: `${user.displayName} did not confirm they were safe before the timer ended.`,
+        createdAt: new Date().toISOString(),
+        read: false,
+      };
+      notifications.unshift(notification);
+      publishCircleEvent(checkIn.circleId, { checkIn, notification });
+    }
   }, 60 * 1000).unref?.();
 }
 
@@ -63,6 +84,7 @@ app.use(sharesRouter);
 app.use(pingsRouter);
 app.use(memoryPinsRouter);
 app.use(notificationsRouter);
+app.use(checkInsRouter);
 
 app.get('/health', (_req, res) => {
   res.json({

@@ -29,6 +29,8 @@ export const NotificationsDrawer: React.FC<NotificationsDrawerProps> = ({
         return <Bookmark className="w-4 h-4 text-amber-400" />;
       case 'member_joined':
         return <UserPlus className="w-4 h-4 text-indigo-400" />;
+      case 'check_in_missed':
+        return <Bell className="w-4 h-4 text-rose-400" />;
       default:
         return <Bell className="w-4 h-4 text-slate-400" />;
     }

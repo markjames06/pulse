@@ -5,6 +5,7 @@ import {
   Ping,
   MemoryPin,
   NotificationItem,
+  SafetyCheckIn,
 } from '../../src/types/index.js';
 
 type PulseMemoryStore = {
@@ -14,6 +15,7 @@ type PulseMemoryStore = {
   pings: Ping[];
   memoryPins: MemoryPin[];
   notifications: NotificationItem[];
+  safetyCheckIns: SafetyCheckIn[];
 };
 
 const globalStore = globalThis as typeof globalThis & {
@@ -28,6 +30,7 @@ if (!globalStore.__pulseStore) {
     pings: [],
     memoryPins: [],
     notifications: [],
+    safetyCheckIns: [],
   };
 }
 
@@ -37,6 +40,7 @@ export const locationShares = globalStore.__pulseStore.locationShares;
 export const pings = globalStore.__pulseStore.pings;
 export const memoryPins = globalStore.__pulseStore.memoryPins;
 export const notifications = globalStore.__pulseStore.notifications;
+export const safetyCheckIns = globalStore.__pulseStore.safetyCheckIns;
 
 export function seedData() {
   users.clear();
@@ -44,5 +48,6 @@ export function seedData() {
   pings.length = 0;
   memoryPins.length = 0;
   notifications.length = 0;
+  safetyCheckIns.length = 0;
   circles.clear();
 }
