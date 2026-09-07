@@ -17,11 +17,10 @@ const signals = [
 export const LandingPage: React.FC<LandingPageProps> = ({ onCreateAccount, onSignIn, onInstall }) => (
   <div className="landing-page min-h-dvh overflow-hidden bg-[#f4f5ef] text-[#111318]">
     <header className="landing-nav relative z-10 mx-auto flex max-w-7xl items-center justify-between px-5 py-5 sm:px-8 lg:px-12">
-      <button type="button" onClick={onCreateAccount} aria-label="Open Pulse signup"><PulseLogo /></button>
-      <div className="flex items-center gap-3">
-        <span className="hidden rounded-full border border-[#d9ddd3] bg-white/70 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#73766f] sm:inline-flex">Private beta</span>
-        <button type="button" onClick={onInstall} className="hidden rounded-full border border-[#d5dad1] bg-white/60 px-3 py-2 text-xs font-semibold text-[#4b504a] transition-colors hover:bg-white sm:inline-flex">Install Pulse</button>
-        <button type="button" onClick={onSignIn} className="rounded-full px-3 py-2 text-xs font-semibold text-[#4b504a] transition-colors hover:bg-white hover:text-[#111318]">Sign in</button>
+      <button type="button" onClick={onCreateAccount} aria-label="Pulse Home"><PulseLogo /></button>
+      <div className="flex items-center gap-2.5">
+        <button type="button" onClick={onSignIn} className="rounded-full px-3.5 py-2 text-xs font-semibold text-[#4b504a] transition-colors hover:bg-white hover:text-[#111318]">Sign in</button>
+        <button type="button" onClick={onCreateAccount} className="rounded-full bg-[#111318] px-4 py-2 text-xs font-semibold text-white shadow-sm transition-transform hover:bg-zinc-800 active:scale-95">Get Started</button>
       </div>
     </header>
 
@@ -38,14 +37,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onCreateAccount, onSig
           <p className="mt-7 max-w-lg text-base leading-7 text-[#62685f] sm:text-lg sm:leading-8">
             Pulse gives small trusted circles a live map, simple safety check-ins, and shared plans without turning your life into a public feed.
           </p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <button type="button" onClick={onCreateAccount} className="landing-primary inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#111318] px-5 text-sm font-semibold text-white shadow-xl shadow-[#111318]/15 transition-transform hover:-translate-y-0.5 active:translate-y-0">
-              Start your free beta <ArrowRight className="h-4 w-4" />
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <button type="button" onClick={onCreateAccount} className="landing-primary inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#111318] px-6 text-sm font-semibold text-white shadow-xl shadow-[#111318]/15 transition-transform hover:-translate-y-0.5 active:translate-y-0">
+              Get Started Free <ArrowRight className="h-4 w-4 text-emerald-400" />
             </button>
-            <button type="button" onClick={onSignIn} className="inline-flex min-h-12 items-center justify-center rounded-xl border border-[#d5dad1] bg-white/60 px-5 text-sm font-semibold text-[#353a35] transition-colors hover:bg-white">Sign in to Pulse</button>
           </div>
-          <p className="mt-4 text-[11px] font-medium text-[#858b82]">Free while we test with small trusted groups. No credit card.</p>
-          <button type="button" onClick={onInstall} className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-[#2855ff] sm:hidden">Install Pulse on this device <ArrowRight className="h-3.5 w-3.5" /></button>
+          <p className="mt-4 text-[11px] font-medium text-[#858b82]">Free for trusted circles • No credit card required.</p>
         </div>
 
         <div className="relative landing-reveal landing-reveal-delay">

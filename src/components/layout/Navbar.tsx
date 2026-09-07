@@ -92,14 +92,14 @@ export const Navbar: React.FC<NavbarProps> = ({
               {realtimeStatus === 'live' ? 'Live' : 'Reconnecting'}
             </span>
 
-            <div className="relative hidden sm:block md:hidden" ref={circleDropdownRef}>
+            <div className="relative block md:hidden" ref={circleDropdownRef}>
               <button
                 type="button"
                 onClick={() => setIsCircleDropdownOpen((open) => !open)}
-                className="pulse-circle-switcher flex items-center gap-2 max-w-[180px] px-3.5 py-2 rounded-full bg-white/70 border border-black/[0.07] shadow-sm text-xs font-medium text-zinc-700 hover:bg-white transition-colors"
+                className="pulse-circle-switcher flex items-center gap-1.5 max-w-[130px] sm:max-w-[180px] px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-full bg-white/80 border border-black/[0.08] shadow-sm text-xs font-semibold text-zinc-800 hover:bg-white transition-colors"
               >
                 <span className="truncate">{activeCircle?.name || 'No circle'}</span>
-                <ChevronDown className={`w-3.5 h-3.5 text-zinc-400 ${isCircleDropdownOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-3.5 h-3.5 text-zinc-400 shrink-0 ${isCircleDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {isCircleDropdownOpen && (
@@ -115,9 +115,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                         onSelectCircle(circle.id);
                         setIsCircleDropdownOpen(false);
                       }}
-                      className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs ${
+                      className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium ${
                         circle.id === activeCircleId
-                          ? 'bg-zinc-900 text-white'
+                          ? 'bg-zinc-900 text-white font-semibold'
                           : 'text-zinc-700 hover:bg-zinc-100'
                       }`}
                     >
@@ -186,8 +186,8 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
       </header>
 
-      <nav className="pulse-mobile-nav md:hidden fixed bottom-0 inset-x-0 z-[1100] bg-[#f7f7f4] border-t border-black/[0.08] pb-[env(safe-area-inset-bottom)]">
-        <div className="flex h-[4.5rem] gap-1 overflow-x-auto px-1">
+      <nav className="pulse-mobile-nav md:hidden fixed bottom-0 inset-x-0 z-[1100] bg-white/92 backdrop-blur-lg border-t border-black/10 pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_30px_rgba(0,0,0,0.08)]">
+        <div className="flex h-[4.25rem] items-center gap-1 overflow-x-auto px-1.5 py-1 scrollbar-none">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const active = activeTab === tab.id;
@@ -196,12 +196,12 @@ export const Navbar: React.FC<NavbarProps> = ({
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex min-w-[16.66%] flex-col items-center justify-center gap-1.5 my-1 rounded-[14px] text-[10px] font-medium transition-colors ${
-                  active ? 'bg-zinc-900 text-white' : 'text-zinc-400 hover:text-zinc-900'
+                className={`flex flex-1 min-w-[3.75rem] flex-col items-center justify-center gap-1 py-1.5 rounded-xl text-[10px] font-semibold transition-all active:scale-95 ${
+                  active ? 'bg-zinc-900 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-900 hover:bg-black/[0.04]'
                 }`}
               >
-                <Icon className="w-5 h-5" />
-                {tab.label}
+                <Icon className="w-4 h-4 text-current" />
+                <span>{tab.label}</span>
               </button>
             );
           })}

@@ -62,64 +62,72 @@ export const MapControls: React.FC<MapControlsProps> = ({
         {isLayersOpen ? <X className="w-5 h-5 text-zinc-700" /> : <SlidersHorizontal className="w-5 h-5 text-zinc-700" />}
       </button>
 
-      {isLayersOpen && <div className="map-layer-panel bg-white border border-black/10 rounded-[16px] p-1.5 shadow-lg flex flex-col gap-0.5 text-[11px]">
-        <button
-          onClick={() => onToggleVisibility('activeShares')}
-          className={`flex items-center justify-between gap-2 px-3 py-2 max-sm:px-2 max-sm:w-9 max-sm:h-9 max-sm:justify-center rounded-xl font-medium transition-all ${
-            markerVisibility.activeShares
-              ? 'bg-zinc-100 text-zinc-900 border border-zinc-200'
-              : 'text-zinc-400 hover:text-zinc-800'
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            <Radio className="w-3.5 h-3.5 text-zinc-700" />
-            <span className="max-sm:hidden">Shares ({counts.shares})</span>
+      {isLayersOpen && (
+        <div className="map-layer-panel bg-white/95 backdrop-blur-md border border-black/10 rounded-[18px] p-2 shadow-2xl flex flex-col gap-1 text-[11px] min-w-[150px]">
+          <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-zinc-400 border-b border-zinc-100 mb-0.5">
+            Map Layers
           </div>
-          {markerVisibility.activeShares ? (
-            <Eye className="w-3.5 h-3.5 text-zinc-700" />
-          ) : (
-            <EyeOff className="w-3.5 h-3.5 text-zinc-400" />
-          )}
-        </button>
+          <button
+            type="button"
+            onClick={() => onToggleVisibility('activeShares')}
+            className={`flex items-center justify-between gap-3 px-2.5 py-2 rounded-xl font-semibold transition-all ${
+              markerVisibility.activeShares
+                ? 'bg-zinc-100 text-zinc-900 border border-zinc-200/80 shadow-xs'
+                : 'text-zinc-500 hover:text-zinc-800 hover:bg-zinc-50'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <Radio className="w-3.5 h-3.5 text-zinc-700 shrink-0" />
+              <span>Shares ({counts.shares})</span>
+            </div>
+            {markerVisibility.activeShares ? (
+              <Eye className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+            ) : (
+              <EyeOff className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+            )}
+          </button>
 
-        <button
-          onClick={() => onToggleVisibility('pings')}
-          className={`flex items-center justify-between gap-2 px-3 py-2 max-sm:px-2 max-sm:w-9 max-sm:h-9 max-sm:justify-center rounded-xl font-medium transition-all ${
-            markerVisibility.pings
-              ? 'bg-zinc-100 text-zinc-900 border border-zinc-200'
-              : 'text-zinc-400 hover:text-zinc-800'
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-3.5 h-3.5 text-zinc-700" />
-            <span className="max-sm:hidden">Pings ({counts.pings})</span>
-          </div>
-          {markerVisibility.pings ? (
-            <Eye className="w-3.5 h-3.5 text-zinc-700" />
-          ) : (
-            <EyeOff className="w-3.5 h-3.5 text-zinc-400" />
-          )}
-        </button>
+          <button
+            type="button"
+            onClick={() => onToggleVisibility('pings')}
+            className={`flex items-center justify-between gap-3 px-2.5 py-2 rounded-xl font-semibold transition-all ${
+              markerVisibility.pings
+                ? 'bg-zinc-100 text-zinc-900 border border-zinc-200/80 shadow-xs'
+                : 'text-zinc-500 hover:text-zinc-800 hover:bg-zinc-50'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-500/20 shrink-0" />
+              <span>Pings ({counts.pings})</span>
+            </div>
+            {markerVisibility.pings ? (
+              <Eye className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+            ) : (
+              <EyeOff className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+            )}
+          </button>
 
-        <button
-          onClick={() => onToggleVisibility('memoryPins')}
-          className={`flex items-center justify-between gap-2 px-3 py-2 max-sm:px-2 max-sm:w-9 max-sm:h-9 max-sm:justify-center rounded-xl font-medium transition-all ${
-            markerVisibility.memoryPins
-              ? 'bg-zinc-100 text-zinc-900 border border-zinc-200'
-              : 'text-zinc-400 hover:text-zinc-800'
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            <Bookmark className="w-3.5 h-3.5 text-zinc-700" />
-            <span className="max-sm:hidden">Pins ({counts.memoryPins})</span>
-          </div>
-          {markerVisibility.memoryPins ? (
-            <Eye className="w-3.5 h-3.5 text-zinc-700" />
-          ) : (
-            <EyeOff className="w-3.5 h-3.5 text-zinc-400" />
-          )}
-        </button>
-      </div>}
+          <button
+            type="button"
+            onClick={() => onToggleVisibility('memoryPins')}
+            className={`flex items-center justify-between gap-3 px-2.5 py-2 rounded-xl font-semibold transition-all ${
+              markerVisibility.memoryPins
+                ? 'bg-zinc-100 text-zinc-900 border border-zinc-200/80 shadow-xs'
+                : 'text-zinc-500 hover:text-zinc-800 hover:bg-zinc-50'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <Bookmark className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+              <span>Pins ({counts.memoryPins})</span>
+            </div>
+            {markerVisibility.memoryPins ? (
+              <Eye className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+            ) : (
+              <EyeOff className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+            )}
+          </button>
+        </div>
+      )}
     </div>
   );
 };

@@ -238,6 +238,8 @@
 .app-shell input::placeholder, .app-shell textarea::placeholder { color: #9aa097; }
 .app-shell .pulse-content > .pulse-header { margin-bottom: 2px; }
 .pulse-mobile-nav { box-shadow: 0 -10px 30px rgba(17,19,24,.06); }
+.scrollbar-none::-webkit-scrollbar, .pulse-mobile-nav::-webkit-scrollbar { display: none; }
+.scrollbar-none, .pulse-mobile-nav > div { scrollbar-width: none; -ms-overflow-style: none; gap: .25rem; }
 .pulse-share-banner { background: #111318; box-shadow: 0 8px 24px rgba(17,19,24,.14); }
 .pulse-share-banner .font-mono { font-family: "Plus Jakarta Sans", sans-serif; letter-spacing: .02em; }
 .pulse-share-banner button { min-height: 36px; transition: transform .18s ease, background-color .18s ease; }
@@ -245,8 +247,7 @@
 #root .pulse-modal { font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif; }
 #root .pulse-modal h3 { letter-spacing: -.025em; }
 #root .pulse-modal form { max-height: min(70dvh, 560px); overflow-y: auto; padding-right: 2px; }
-.pulse-mobile-nav::-webkit-scrollbar { display: none; }
-.pulse-mobile-nav > div { scrollbar-width: none; gap: .25rem; }
+.pulse-mobile-nav > div { gap: .25rem; }
 .pulse-mobile-nav > div > button { flex: 1 1 0; min-width: 0; }
 .map-control-button, .map-action-bar { box-shadow: 0 12px 28px rgba(17,19,24,.14); }
 .map-control-button:hover { transform: translateY(-1px); box-shadow: 0 16px 30px rgba(17,19,24,.17); }
