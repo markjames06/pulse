@@ -6,5 +6,6 @@ export interface NotificationItem {
   body: string;
   createdAt: string;
   read: boolean;
+  readBy?: string[];
   data?: any;
 }

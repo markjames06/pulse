@@ -13,6 +13,7 @@ export function usePulseState() {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [isRegisterRequired, setIsRegisterRequired] = useState(false);
   const [isBooting, setIsBooting] = useState(true);
+  const [realtimeStatus, setRealtimeStatus] = useState<'connecting' | 'live' | 'reconnecting'>('connecting');
   const notificationIdsRef = useRef(new Set<string>());
 
   const loadData = useCallback(async () => {
@@ -94,8 +95,15 @@ export function usePulseState() {
     if (isRegisterRequired || !activeCircleId) return undefined;
 
     const eventSource = new EventSource(`/api/events?circleId=${encodeURIComponent(activeCircleId)}`);
+    setRealtimeStatus('connecting');
+    eventSource.onopen = () => setRealtimeStatus('live');
+    eventSource.onerror = () => setRealtimeStatus('reconnecting');
     eventSource.onmessage = (message) => {
-      const event = JSON.parse(message.data) as { ping?: Ping; notification?: NotificationItem };
+      const event = JSON.parse(message.data) as {
+        ping?: Ping;
+        notification?: NotificationItem;
+        share?: LocationShare;
+      };
       if (event.ping) {
         setPings((current) => [event.ping!, ...current.filter((ping) => ping.id !== event.ping!.id)]);
       }
@@ -122,9 +130,15 @@ export function usePulseState() {
           }
         }
       }
+      if (event.share) {
+        setShares((current) => [event.share!, ...current.filter((share) => share.id !== event.share!.id)]);
+      }
     };
 
-    return () => eventSource.close();
+    return () => {
+      eventSource.close();
+      setRealtimeStatus('reconnecting');
+    };
   }, [activeCircleId, isRegisterRequired]);
 
   const currentUserId = currentUser?.id || '';
@@ -257,6 +271,7 @@ export function usePulseState() {
     pings,
     memoryPins,
     notifications,
+    realtimeStatus,
     activeUserShare,
     isRegisterRequired,
     isBooting,

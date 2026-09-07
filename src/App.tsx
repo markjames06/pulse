@@ -29,6 +29,7 @@ export default function App() {
     pings,
     memoryPins,
     notifications,
+    realtimeStatus,
     activeUserShare,
     isRegisterRequired,
     isBooting,
@@ -97,6 +98,7 @@ export default function App() {
           }
         }}
         onOpenSettings={() => setIsSettingsOpen(true)}
+        realtimeStatus={realtimeStatus}
       />
 
       {activeUserShare && (

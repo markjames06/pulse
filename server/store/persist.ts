@@ -14,8 +14,11 @@ import {
   MemoryPin,
   NotificationItem,
 } from '../../src/types/index.js';
+import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import path from 'node:path';
 
 const STORE_KEY = 'pulse:db:v2';
+const LOCAL_STORE_PATH = path.resolve(process.cwd(), 'data/pulse-store.json');
 
 type StoreSnapshot = {
   users: UserProfile[];
@@ -31,6 +34,18 @@ function redisConfig() {
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
   if (!url || !token) return null;
   return { url, token };
+}
+
+async function readLocalSnapshot(): Promise<StoreSnapshot | null> {
+  try {
+    const raw = await readFile(LOCAL_STORE_PATH, 'utf8');
+    return JSON.parse(raw) as StoreSnapshot;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+      console.error('Failed to read local Pulse store:', error);
+    }
+    return null;
+  }
 }
 
 function takeSnapshot(): StoreSnapshot {
@@ -81,12 +96,17 @@ async function redisCommand(command: unknown[]) {
 }
 
 let hydratePromise: Promise<void> | null = null;
+let persistQueue = Promise.resolve();
 
 export async function hydrateStore() {
   if (hydratePromise) return hydratePromise;
 
   hydratePromise = (async () => {
-    if (!redisConfig()) return;
+    if (!redisConfig()) {
+      const snapshot = await readLocalSnapshot();
+      if (snapshot) restoreSnapshot(snapshot);
+      return;
+    }
 
     try {
       const payload = await redisCommand(['GET', STORE_KEY]);
@@ -106,7 +126,18 @@ export async function hydrateStore() {
 }
 
 export async function persistStore() {
-  if (!redisConfig()) return;
+  if (!redisConfig()) {
+    persistQueue = persistQueue.then(async () => {
+      try {
+        await mkdir(path.dirname(LOCAL_STORE_PATH), { recursive: true });
+        await writeFile(LOCAL_STORE_PATH, JSON.stringify(takeSnapshot()), 'utf8');
+      } catch (error) {
+        console.error('Failed to persist local Pulse store:', error);
+      }
+    });
+    await persistQueue;
+    return;
+  }
 
   try {
     await redisCommand(['SET', STORE_KEY, JSON.stringify(takeSnapshot())]);

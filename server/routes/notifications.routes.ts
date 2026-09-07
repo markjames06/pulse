@@ -15,7 +15,12 @@ notificationsRouter.get('/api/notifications', requireAuth, (req: Request, res: R
     return circle?.members.some((m) => m.userId === userId);
   });
 
-  res.json(filteredNotifs);
+  res.json(
+    filteredNotifs.map((notification) => ({
+      ...notification,
+      read: notification.read || notification.readBy?.includes(userId) === true,
+    }))
+  );
 });
 
 notificationsRouter.get('/api/events', requireAuth, (req: Request, res: Response) => {
@@ -55,7 +60,7 @@ notificationsRouter.post('/api/notifications/read-all', requireAuth, (req: Reque
       circle?.members.some((member) => member.userId === userId) &&
       !notification.read
     ) {
-      notification.read = true;
+      notification.readBy = Array.from(new Set([...(notification.readBy || []), userId]));
       updated += 1;
     }
   }

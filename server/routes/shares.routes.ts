@@ -64,6 +64,7 @@ sharesRouter.post('/api/shares', requireAuth, rateLimiter(20, 60000), (req: Requ
     label: sanitizedLabel,
     expiresAt,
     createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
     isActive: true,
     userProfile: publicUser(user),
   };
@@ -122,6 +123,9 @@ sharesRouter.put('/api/shares/:id/location', requireAuth, (req: Request, res: Re
 
   share.latitude = parseResult.data.latitude;
   share.longitude = parseResult.data.longitude;
+  share.updatedAt = new Date().toISOString();
+
+  publishCircleEvent(share.circleId, { share });
 
   res.json(share);
 });

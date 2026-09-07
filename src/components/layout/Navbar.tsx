@@ -23,6 +23,7 @@ interface NavbarProps {
   unreadNotificationsCount: number;
   onOpenNotifications: () => void;
   onOpenSettings: () => void;
+  realtimeStatus: 'connecting' | 'live' | 'reconnecting';
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -35,6 +36,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   unreadNotificationsCount,
   onOpenNotifications,
   onOpenSettings,
+  realtimeStatus,
 }) => {
   const [isCircleDropdownOpen, setIsCircleDropdownOpen] = useState(false);
   const circleDropdownRef = useRef<HTMLDivElement>(null);
@@ -72,6 +74,13 @@ export const Navbar: React.FC<NavbarProps> = ({
               </span>
               <span className="font-semibold tracking-[-0.02em] text-zinc-900 md:hidden">Pulse</span>
             </button>
+            <span
+              className="hidden sm:inline-flex items-center gap-1.5 text-[10px] font-medium text-zinc-500"
+              title={`Live updates: ${realtimeStatus}`}
+            >
+              <span className={`w-1.5 h-1.5 rounded-full ${realtimeStatus === 'live' ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'}`} />
+              {realtimeStatus === 'live' ? 'Live' : 'Reconnecting'}
+            </span>
 
             <div className="relative hidden sm:block md:hidden" ref={circleDropdownRef}>
               <button

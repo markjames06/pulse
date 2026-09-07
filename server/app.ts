@@ -48,10 +48,9 @@ app.use(async (_req: Request, res: Response, next: NextFunction) => {
 
 if (!isVercel) {
   setInterval(() => {
-    const cutoff = Date.now() - 24 * 60 * 60 * 1000;
-
     for (const [id, share] of locationShares.entries()) {
-      if (new Date(share.expiresAt).getTime() < cutoff) {
+      if (new Date(share.expiresAt).getTime() <= Date.now()) {
+        share.isActive = false;
         locationShares.delete(id);
       }
     }

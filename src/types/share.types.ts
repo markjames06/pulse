@@ -10,6 +10,7 @@ export interface LocationShare {
   label?: string;
   expiresAt: string;
   createdAt: string;
+  updatedAt?: string;
   isActive: boolean;
   userProfile?: UserProfile;
 }

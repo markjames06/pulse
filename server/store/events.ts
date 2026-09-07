@@ -1,9 +1,10 @@
 import { EventEmitter } from 'node:events';
-import { NotificationItem, Ping } from '../../src/types/index.js';
+import { LocationShare, NotificationItem, Ping } from '../../src/types/index.js';
 
 export interface CircleEvent {
   ping?: Ping;
   notification?: NotificationItem;
+  share?: LocationShare;
 }
 
 export const circleEvents = new EventEmitter();

@@ -166,7 +166,7 @@ export const MapView: React.FC<MapViewProps> = ({
             </div>
             ${share.label ? `<p class="text-xs text-indigo-300 font-medium mb-1">${escapeHtml(share.label)}</p>` : ''}
             <div class="text-[11px] text-slate-400 flex items-center justify-between border-t border-slate-700/50 pt-2 mt-2">
-              <span>Expires ${formatTimeAgo(share.expiresAt)}</span>
+              <span>Updated ${formatTimeAgo(share.updatedAt || share.createdAt)} • Expires ${formatTimeAgo(share.expiresAt)}</span>
               ${isSelf ? '<span class="text-emerald-400 font-bold">(You)</span>' : ''}
             </div>
           </div>
