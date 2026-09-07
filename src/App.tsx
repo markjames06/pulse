@@ -175,6 +175,7 @@ export default function App() {
         {activeTab === 'moments' && (
           <MomentsView
             moments={moments}
+            circleId={activeCircleId}
             circleName={activeCircle?.name || 'Your Circle'}
             onCreateMoment={handleCreateMoment}
           />

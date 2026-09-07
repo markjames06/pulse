@@ -6,3 +6,4 @@ export * from './memoryPin.types.js';
 export * from './notification.types.js';
 export * from './checkIn.types.js';
 export * from './moment.types.js';
+export * from './insight.types.js';

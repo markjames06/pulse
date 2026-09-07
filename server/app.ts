@@ -11,6 +11,7 @@ import { notificationsRouter } from './routes/notifications.routes.js';
 import { checkInsRouter } from './routes/checkIns.routes.js';
 import { momentsRouter } from './routes/moments.routes.js';
 import { pushRouter } from './routes/push.routes.js';
+import { insightsRouter } from './routes/insights.routes.js';
 import { circles, locationShares, notifications, safetyCheckIns, users } from './store/db.js';
 import { hydrateStore, persistStore } from './store/persist.js';
 import { securityHeaders } from './middleware/security.middleware.js';
@@ -89,6 +90,7 @@ app.use(notificationsRouter);
 app.use(checkInsRouter);
 app.use(momentsRouter);
 app.use(pushRouter);
+app.use(insightsRouter);
 
 app.get('/health', (_req, res) => {
   res.json({

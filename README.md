@@ -93,3 +93,5 @@ Pulse uses Web Push for alerts when the app is closed. Copy `.env.example` to `.
 ```bash
 npx web-push generate-vapid-keys
 ```
+
+Set `GEMINI_API_KEY` to enable AI-powered Circle Briefs. Without it, Pulse uses a local activity summary and never sends raw coordinates to an AI service.

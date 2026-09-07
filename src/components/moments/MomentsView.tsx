@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { CalendarDays, MapPin, Plus, UserRound } from 'lucide-react';
 import { PulseMoment } from '../../types';
+import { CircleInsight } from '../../types';
+import { api } from '../../api';
 import { formatTimeAgo } from '../../utils/formatters';
 
 interface MomentsViewProps {
   moments: PulseMoment[];
+  circleId: string;
   circleName: string;
   onCreateMoment: (title: string, place: string, startsAt: string) => Promise<void>;
 }
@@ -16,12 +19,15 @@ function defaultStartTime() {
   return new Date(date.getTime() - offset * 60000).toISOString().slice(0, 16);
 }
 
-export const MomentsView: React.FC<MomentsViewProps> = ({ moments, circleName, onCreateMoment }) => {
+export const MomentsView: React.FC<MomentsViewProps> = ({ moments, circleId, circleName, onCreateMoment }) => {
   const [title, setTitle] = useState('');
   const [place, setPlace] = useState('');
   const [startsAt, setStartsAt] = useState(defaultStartTime);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
+  const [brief, setBrief] = useState<CircleInsight | null>(null);
+  const [question, setQuestion] = useState('');
+  const [isThinking, setIsThinking] = useState(false);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -37,6 +43,27 @@ export const MomentsView: React.FC<MomentsViewProps> = ({ moments, circleName, o
       setError(submitError instanceof Error ? submitError.message : 'Could not create this plan');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleBrief = async () => {
+    setIsThinking(true);
+    try {
+      setBrief(await api.getCircleBrief(circleId));
+    } finally {
+      setIsThinking(false);
+    }
+  };
+
+  const handleQuestion = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!question.trim()) return;
+    setIsThinking(true);
+    try {
+      setBrief(await api.askCircleQuestion(circleId, question.trim()));
+      setQuestion('');
+    } finally {
+      setIsThinking(false);
     }
   };
 
@@ -63,6 +90,23 @@ export const MomentsView: React.FC<MomentsViewProps> = ({ moments, circleName, o
           <Plus className="w-4 h-4" /> {isSaving ? 'Creating...' : 'Create Moment'}
         </button>
       </form>
+
+      <section className="pulse-card bg-[#111318] text-white rounded-xl p-5 space-y-4">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h3 className="text-sm font-semibold">Circle Brief</h3>
+            <p className="text-xs text-zinc-400 mt-1">A quick, private read on what your circle is doing.</p>
+          </div>
+          <button type="button" onClick={() => void handleBrief()} disabled={isThinking} className="rounded-lg bg-white px-3 py-2 text-xs font-semibold text-zinc-900 disabled:opacity-50">
+            {isThinking ? 'Thinking...' : 'Get brief'}
+          </button>
+        </div>
+        {brief && <p className="text-sm leading-6 text-zinc-200">{brief.summary}</p>}
+        <form onSubmit={handleQuestion} className="flex gap-2">
+          <input value={question} onChange={(event) => setQuestion(event.target.value)} maxLength={240} placeholder="Ask about your circle..." className="min-h-10 min-w-0 flex-1 rounded-lg border border-white/15 bg-white/10 px-3 text-xs text-white placeholder-zinc-500" />
+          <button type="submit" disabled={isThinking || !question.trim()} className="rounded-lg border border-white/20 px-3 py-2 text-xs font-semibold text-white disabled:opacity-40">Ask</button>
+        </form>
+      </section>
 
       {moments.length === 0 ? (
         <div className="py-16 text-center text-sm text-slate-500">No plans yet. Create the first one for your circle.</div>
