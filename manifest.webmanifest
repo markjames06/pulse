@@ -1,0 +1,17 @@
+{
+  "name": "Pulse - Trusted Circles",
+  "short_name": "Pulse",
+  "description": "Private, time-boxed location sharing for trusted circles.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7f7f4",
+  "theme_color": "#f7f7f4",
+  "icons": [
+    {
+      "src": "/pulse-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

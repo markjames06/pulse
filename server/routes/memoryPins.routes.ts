@@ -32,7 +32,7 @@ memoryPinsRouter.post('/api/memory-pins', requireAuth, rateLimiter(10, 60000), (
     return res.status(400).json({ error: parseResult.error.issues[0].message });
   }
 
-  const { circleId, latitude, longitude, caption, emoji } = parseResult.data;
+  const { circleId, latitude, longitude, caption, emoji, placeName } = parseResult.data;
   const circle = circles.get(circleId);
   if (!circle || !circle.members.some((m) => m.userId === userId)) {
     return res.status(403).json({ error: 'You are not a member of this circle' });
@@ -47,6 +47,7 @@ memoryPinsRouter.post('/api/memory-pins', requireAuth, rateLimiter(10, 60000), (
     longitude,
     caption: sanitizedCaption,
     emoji: emoji || '📍',
+    placeName: placeName ? sanitizeText(placeName) : undefined,
     createdAt: new Date().toISOString(),
     creatorProfile: publicUser(user),
   };

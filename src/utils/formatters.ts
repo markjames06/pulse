@@ -34,3 +34,16 @@ export function getRandomCoordsOffset(baseLat = 14.599512, baseLng = 120.984222)
   const lng = baseLng + (Math.random() - 0.5) * 0.01;
   return { lat, lng };
 }
+
+export async function getFriendlyPlaceName(latitude: number, longitude: number): Promise<string | undefined> {
+  try {
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18&lat=${latitude}&lon=${longitude}`
+    );
+    if (!response.ok) return undefined;
+    const result = await response.json() as { display_name?: string };
+    return result.display_name?.split(',').slice(0, 3).join(',').trim() || undefined;
+  } catch {
+    return undefined;
+  }
+}

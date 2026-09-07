@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from '../api';
 import { Circle, LocationShare, MemoryPin, NotificationItem, Ping, UserProfile } from '../types';
-import { getRandomCoordsOffset } from '../utils/formatters';
+import { getFriendlyPlaceName } from '../utils/formatters';
 
 export function usePulseState() {
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
@@ -147,13 +147,49 @@ export function usePulseState() {
     (share) => share.userId === currentUserId && share.circleId === activeCircleId && share.isActive
   );
 
+  useEffect(() => {
+    if (!activeUserShare || !navigator.geolocation) return undefined;
+
+    let lastSent: { latitude: number; longitude: number; at: number } | null = null;
+    const watchId = navigator.geolocation.watchPosition(
+      (position) => {
+        const latitude = position.coords.latitude;
+        const longitude = position.coords.longitude;
+        const movedEnough = !lastSent || Math.abs(latitude - lastSent.latitude) > 0.0001 || Math.abs(longitude - lastSent.longitude) > 0.0001;
+        const waitedEnough = !lastSent || Date.now() - lastSent.at > 10000;
+        if (!movedEnough && !waitedEnough) return;
+
+        lastSent = { latitude, longitude, at: Date.now() };
+        void api.updateLocation(activeUserShare.id, { latitude, longitude }).then((updatedShare) => {
+          setShares((current) => current.map((share) => share.id === updatedShare.id ? updatedShare : share));
+        });
+      },
+      () => undefined,
+      { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
+    );
+
+    return () => navigator.geolocation.clearWatch(watchId);
+  }, [activeUserShare?.id]);
+
   const handleStartShare = async (
     durationMinutes: number,
     label?: string,
     lat?: number,
     lng?: number
   ) => {
-    const coords = getRandomCoordsOffset(lat, lng);
+    const coords = lat !== undefined && lng !== undefined
+      ? { lat, lng }
+      : await new Promise<{ lat: number; lng: number }>((resolve) => {
+          if (!navigator.geolocation) {
+            resolve({ lat: 14.599512, lng: 120.984222 });
+            return;
+          }
+          navigator.geolocation.getCurrentPosition(
+            (position) => resolve({ lat: position.coords.latitude, lng: position.coords.longitude }),
+            () => resolve({ lat: 14.599512, lng: 120.984222 }),
+            { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
+          );
+        });
     await api.startShare({
       circleId: activeCircleId,
       durationMinutes,
@@ -207,12 +243,14 @@ export function usePulseState() {
     lat: number,
     lng: number
   ) => {
+    const placeName = await getFriendlyPlaceName(lat, lng);
     await api.createMemoryPin({
       circleId: activeCircleId,
       caption,
       emoji,
       latitude: lat,
       longitude: lng,
+      placeName,
     });
     await loadData();
   };

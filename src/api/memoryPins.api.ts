@@ -10,6 +10,7 @@ export const memoryPinsApi = {
     longitude: number;
     caption: string;
     emoji?: string;
+    placeName?: string;
   }) =>
     apiFetch<MemoryPin>('/api/memory-pins', {
       method: 'POST',

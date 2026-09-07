@@ -75,7 +75,7 @@ export const MemoryPinsList: React.FC<MemoryPinsListProps> = ({
                           {pin.caption}
                         </h4>
                         <span className="text-[10px] text-slate-400 font-medium">
-                          {formatTimeAgo(pin.createdAt)}
+                          {pin.placeName || formatTimeAgo(pin.createdAt)}
                         </span>
                       </div>
                     </div>

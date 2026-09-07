@@ -10,6 +10,7 @@ export interface MemoryPin {
   caption: string;
   emoji?: string;
   createdAt: string;
+  placeName?: string;
   creatorProfile?: UserProfile;
 }
 
@@ -19,4 +20,5 @@ export const createMemoryPinSchema = z.object({
   longitude: z.number().min(-180).max(180),
   caption: z.string().trim().min(1, 'Caption is required').max(280, 'Max 280 characters'),
   emoji: z.string().max(10).optional(),
+  placeName: z.string().trim().max(200).optional(),
 });

@@ -219,7 +219,7 @@ export const MapView: React.FC<MapViewProps> = ({
               <span class="w-5 h-5 text-zinc-700">${getMemoryPinIconSvg(pin.emoji)}</span>
               <h4 class="font-bold text-sm text-zinc-900">${escapeHtml(pin.caption)}</h4>
             </div>
-            <p class="text-[11px] text-slate-400 mb-2">Saved by ${escapeHtml(pin.creatorProfile?.displayName || 'Member')}</p>
+            <p class="text-[11px] text-slate-400 mb-2">${escapeHtml(pin.placeName || 'Saved place')} • Saved by ${escapeHtml(pin.creatorProfile?.displayName || 'Member')}</p>
             <span class="text-[10px] text-amber-400/80">${formatTimeAgo(pin.createdAt)}</span>
           </div>
         `;
