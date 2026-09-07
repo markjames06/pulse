@@ -247,7 +247,7 @@ export const MapView: React.FC<MapViewProps> = ({
   };
 
   return (
-    <div className="w-full h-[calc(100dvh-4.5rem)] md:h-dvh relative overflow-hidden bg-zinc-950">
+    <div className="w-full h-[calc(100dvh-4.25rem)] md:h-dvh relative overflow-hidden bg-zinc-950">
       {/* Map Element Container */}
       <div ref={mapContainerRef} className="w-full h-full z-0" />
 
