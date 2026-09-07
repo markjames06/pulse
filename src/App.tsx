@@ -4,6 +4,7 @@ import { MapView } from './components/map';
 import { CirclesManager } from './components/circles';
 import { PingsList } from './components/pings';
 import { MemoryPinsList } from './components/memoryPins';
+import { MomentsView } from './components/moments';
 import {
   ShareLocationModal,
   SendPingModal,
@@ -16,7 +17,7 @@ import { useModalState } from './hooks/useModalState';
 import { UserProfile } from './types';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'map' | 'circles' | 'pings' | 'memory_pins'>('map');
+  const [activeTab, setActiveTab] = useState<'map' | 'circles' | 'pings' | 'memory_pins' | 'moments'>('map');
 
   const {
     currentUserId,
@@ -33,6 +34,7 @@ export default function App() {
     activeUserShare,
     safetyCheckIns,
     activeUserCheckIn,
+    moments,
     isRegisterRequired,
     isBooting,
     handleStartShare,
@@ -41,6 +43,7 @@ export default function App() {
     handleMarkAllNotificationsRead,
     handleStartSafetyCheckIn,
     handleCompleteSafetyCheckIn,
+    handleCreateMoment,
     handleSaveMemoryPin,
     handleDeleteMemoryPin,
     handleCreateCircle,
@@ -165,6 +168,14 @@ export default function App() {
             onFocusPinOnMap={() => {
               setActiveTab('map');
             }}
+          />
+        )}
+
+        {activeTab === 'moments' && (
+          <MomentsView
+            moments={moments}
+            circleName={activeCircle?.name || 'Your Circle'}
+            onCreateMoment={handleCreateMoment}
           />
         )}
       </main>

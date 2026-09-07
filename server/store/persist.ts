@@ -6,6 +6,7 @@ import {
   memoryPins,
   notifications,
   safetyCheckIns,
+  moments,
 } from './db.js';
 import {
   UserProfile,
@@ -15,6 +16,7 @@ import {
   MemoryPin,
   NotificationItem,
   SafetyCheckIn,
+  PulseMoment,
 } from '../../src/types/index.js';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
@@ -30,6 +32,7 @@ type StoreSnapshot = {
   memoryPins: MemoryPin[];
   notifications: NotificationItem[];
   safetyCheckIns: SafetyCheckIn[];
+  moments: PulseMoment[];
 };
 
 function redisConfig() {
@@ -60,6 +63,7 @@ function takeSnapshot(): StoreSnapshot {
     memoryPins: [...memoryPins],
     notifications: [...notifications],
     safetyCheckIns: [...safetyCheckIns],
+    moments: [...moments],
   };
 }
 
@@ -71,6 +75,7 @@ function restoreSnapshot(snapshot: StoreSnapshot) {
   memoryPins.length = 0;
   notifications.length = 0;
   safetyCheckIns.length = 0;
+  moments.length = 0;
 
   for (const user of snapshot.users || []) users.set(user.id, user);
   for (const circle of snapshot.circles || []) circles.set(circle.id, circle);
@@ -79,6 +84,7 @@ function restoreSnapshot(snapshot: StoreSnapshot) {
   memoryPins.push(...(snapshot.memoryPins || []));
   notifications.push(...(snapshot.notifications || []));
   safetyCheckIns.push(...(snapshot.safetyCheckIns || []));
+  moments.push(...(snapshot.moments || []));
 }
 
 async function redisCommand(command: unknown[]) {

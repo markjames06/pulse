@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from '../api';
-import { Circle, LocationShare, MemoryPin, NotificationItem, Ping, SafetyCheckIn, UserProfile } from '../types';
+import { Circle, LocationShare, MemoryPin, NotificationItem, Ping, PulseMoment, SafetyCheckIn, UserProfile } from '../types';
 import { getFriendlyPlaceName } from '../utils/formatters';
 
 export function usePulseState() {
@@ -12,6 +12,7 @@ export function usePulseState() {
   const [memoryPins, setMemoryPins] = useState<MemoryPin[]>([]);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [safetyCheckIns, setSafetyCheckIns] = useState<SafetyCheckIn[]>([]);
+  const [moments, setMoments] = useState<PulseMoment[]>([]);
   const [isRegisterRequired, setIsRegisterRequired] = useState(false);
   const [isBooting, setIsBooting] = useState(true);
   const [realtimeStatus, setRealtimeStatus] = useState<'connecting' | 'live' | 'reconnecting'>('connecting');
@@ -28,6 +29,7 @@ export function usePulseState() {
         setMemoryPins([]);
         setNotifications([]);
         setSafetyCheckIns([]);
+        setMoments([]);
         setIsRegisterRequired(true);
         return;
       }
@@ -52,15 +54,17 @@ export function usePulseState() {
         setMemoryPins([]);
         setNotifications([]);
         setSafetyCheckIns([]);
+        setMoments([]);
         return;
       }
 
-      const [fetchedShares, fetchedPings, fetchedPins, fetchedNotifs, fetchedCheckIns] = await Promise.all([
+      const [fetchedShares, fetchedPings, fetchedPins, fetchedNotifs, fetchedCheckIns, fetchedMoments] = await Promise.all([
         api.getShares(nextCircleId),
         api.getPings(nextCircleId),
         api.getMemoryPins(nextCircleId),
         api.getNotifications(nextCircleId),
         api.getSafetyCheckIns(nextCircleId),
+        api.getMoments(nextCircleId),
       ]);
 
       setShares(fetchedShares);
@@ -68,6 +72,7 @@ export function usePulseState() {
       setMemoryPins(fetchedPins);
       setNotifications(fetchedNotifs);
       setSafetyCheckIns(fetchedCheckIns);
+      setMoments(fetchedMoments);
       notificationIdsRef.current = new Set(fetchedNotifs.map((notification) => notification.id));
     } catch {
       setCurrentUser(null);
@@ -77,6 +82,7 @@ export function usePulseState() {
       setMemoryPins([]);
       setNotifications([]);
       setSafetyCheckIns([]);
+      setMoments([]);
       setIsRegisterRequired(true);
     } finally {
       setIsBooting(false);
@@ -110,6 +116,7 @@ export function usePulseState() {
         notification?: NotificationItem;
         share?: LocationShare;
         checkIn?: SafetyCheckIn;
+        moment?: PulseMoment;
       };
       if (event.ping) {
         setPings((current) => [event.ping!, ...current.filter((ping) => ping.id !== event.ping!.id)]);
@@ -142,6 +149,9 @@ export function usePulseState() {
       }
       if (event.checkIn) {
         setSafetyCheckIns((current) => [event.checkIn!, ...current.filter((item) => item.id !== event.checkIn!.id)]);
+      }
+      if (event.moment) {
+        setMoments((current) => [event.moment!, ...current.filter((item) => item.id !== event.moment!.id)]);
       }
     };
 
@@ -260,6 +270,11 @@ export function usePulseState() {
     setSafetyCheckIns((current) => current.map((item) => item.id === checkIn.id ? checkIn : item));
   };
 
+  const handleCreateMoment = async (title: string, place: string, startsAt: string) => {
+    const moment = await api.createMoment({ circleId: activeCircleId, title, place, startsAt });
+    setMoments((current) => [moment, ...current.filter((item) => item.id !== moment.id)]);
+  };
+
   const handleSaveMemoryPin = async (
     caption: string,
     emoji: string,
@@ -334,6 +349,7 @@ export function usePulseState() {
     notifications,
     safetyCheckIns,
     activeUserCheckIn,
+    moments,
     realtimeStatus,
     activeUserShare,
     isRegisterRequired,
@@ -344,6 +360,7 @@ export function usePulseState() {
     handleMarkAllNotificationsRead,
     handleStartSafetyCheckIn,
     handleCompleteSafetyCheckIn,
+    handleCreateMoment,
     handleSaveMemoryPin,
     handleDeleteMemoryPin,
     handleCreateCircle,

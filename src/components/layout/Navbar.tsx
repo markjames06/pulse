@@ -10,12 +10,13 @@ import {
   ChevronDown,
   Radio,
   Check,
+  CalendarDays,
 } from 'lucide-react';
 import { getInitials } from '../../utils/formatters';
 
 interface NavbarProps {
-  activeTab: 'map' | 'circles' | 'pings' | 'memory_pins';
-  setActiveTab: (tab: 'map' | 'circles' | 'pings' | 'memory_pins') => void;
+  activeTab: 'map' | 'circles' | 'pings' | 'memory_pins' | 'moments';
+  setActiveTab: (tab: 'map' | 'circles' | 'pings' | 'memory_pins' | 'moments') => void;
   circles: Circle[];
   activeCircleId: string;
   onSelectCircle: (id: string) => void;
@@ -57,6 +58,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     { id: 'circles' as const, label: 'Circles', icon: Users },
     { id: 'pings' as const, label: 'Pings', icon: Zap },
     { id: 'memory_pins' as const, label: 'Pins', icon: Bookmark },
+    { id: 'moments' as const, label: 'Plans', icon: CalendarDays },
   ];
 
   return (
@@ -175,7 +177,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       </header>
 
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-[1100] bg-[#f7f7f4] border-t border-black/[0.08] pb-[env(safe-area-inset-bottom)]">
-        <div className="grid grid-cols-4 h-[4.5rem] px-2">
+        <div className="grid grid-cols-5 h-[4.5rem] px-2">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const active = activeTab === tab.id;

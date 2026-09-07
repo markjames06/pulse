@@ -9,6 +9,7 @@ import { pingsRouter } from './routes/pings.routes.js';
 import { memoryPinsRouter } from './routes/memoryPins.routes.js';
 import { notificationsRouter } from './routes/notifications.routes.js';
 import { checkInsRouter } from './routes/checkIns.routes.js';
+import { momentsRouter } from './routes/moments.routes.js';
 import { circles, locationShares, notifications, safetyCheckIns, users } from './store/db.js';
 import { hydrateStore, persistStore } from './store/persist.js';
 import { securityHeaders } from './middleware/security.middleware.js';
@@ -85,6 +86,7 @@ app.use(pingsRouter);
 app.use(memoryPinsRouter);
 app.use(notificationsRouter);
 app.use(checkInsRouter);
+app.use(momentsRouter);
 
 app.get('/health', (_req, res) => {
   res.json({

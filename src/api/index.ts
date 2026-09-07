@@ -5,6 +5,7 @@ import { pingsApi } from './pings.api';
 import { memoryPinsApi } from './memoryPins.api';
 import { notificationsApi } from './notifications.api';
 import { checkInsApi } from './checkIns.api';
+import { momentsApi } from './moments.api';
 
 export const api = {
   ...usersApi,
@@ -14,4 +15,5 @@ export const api = {
   ...memoryPinsApi,
   ...notificationsApi,
   ...checkInsApi,
+  ...momentsApi,
 };

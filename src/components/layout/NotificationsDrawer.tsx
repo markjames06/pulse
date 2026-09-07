@@ -1,6 +1,6 @@
 import React from 'react';
 import { NotificationItem } from '../../types';
-import { X, Bell, Radio, Zap, Bookmark, UserPlus, CheckCheck } from 'lucide-react';
+import { X, Bell, Radio, Zap, Bookmark, UserPlus, CheckCheck, CalendarDays } from 'lucide-react';
 import { formatTimeAgo } from '../../utils/formatters';
 
 interface NotificationsDrawerProps {
@@ -31,6 +31,8 @@ export const NotificationsDrawer: React.FC<NotificationsDrawerProps> = ({
         return <UserPlus className="w-4 h-4 text-indigo-400" />;
       case 'check_in_missed':
         return <Bell className="w-4 h-4 text-rose-400" />;
+      case 'moment_created':
+        return <CalendarDays className="w-4 h-4 text-sky-400" />;
       default:
         return <Bell className="w-4 h-4 text-slate-400" />;
     }
