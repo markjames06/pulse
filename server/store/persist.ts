@@ -8,6 +8,7 @@ import {
   safetyCheckIns,
   moments,
   pushSubscriptions,
+  upgradeInterests,
   PushSubscriptionRecord,
 } from './db.js';
 import {
@@ -19,6 +20,7 @@ import {
   NotificationItem,
   SafetyCheckIn,
   PulseMoment,
+  UpgradeInterest,
 } from '../../src/types/index.js';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
@@ -36,6 +38,7 @@ type StoreSnapshot = {
   safetyCheckIns: SafetyCheckIn[];
   moments: PulseMoment[];
   pushSubscriptions: PushSubscriptionRecord[];
+  upgradeInterests: UpgradeInterest[];
 };
 
 function redisConfig() {
@@ -68,6 +71,7 @@ function takeSnapshot(): StoreSnapshot {
     safetyCheckIns: [...safetyCheckIns],
     moments: [...moments],
     pushSubscriptions: [...pushSubscriptions],
+    upgradeInterests: [...upgradeInterests],
   };
 }
 
@@ -81,6 +85,7 @@ function restoreSnapshot(snapshot: StoreSnapshot) {
   safetyCheckIns.length = 0;
   moments.length = 0;
   pushSubscriptions.length = 0;
+  upgradeInterests.length = 0;
 
   for (const user of snapshot.users || []) users.set(user.id, user);
   for (const circle of snapshot.circles || []) circles.set(circle.id, circle);
@@ -91,6 +96,7 @@ function restoreSnapshot(snapshot: StoreSnapshot) {
   safetyCheckIns.push(...(snapshot.safetyCheckIns || []));
   moments.push(...(snapshot.moments || []));
   pushSubscriptions.push(...(snapshot.pushSubscriptions || []));
+  upgradeInterests.push(...(snapshot.upgradeInterests || []));
 }
 
 async function redisCommand(command: unknown[]) {

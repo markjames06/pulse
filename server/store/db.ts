@@ -7,6 +7,7 @@ import {
   NotificationItem,
   SafetyCheckIn,
   PulseMoment,
+  UpgradeInterest,
 } from '../../src/types/index.js';
 
 export type PushSubscriptionRecord = {
@@ -26,6 +27,7 @@ type PulseMemoryStore = {
   safetyCheckIns: SafetyCheckIn[];
   moments: PulseMoment[];
   pushSubscriptions: PushSubscriptionRecord[];
+  upgradeInterests: UpgradeInterest[];
 };
 
 const globalStore = globalThis as typeof globalThis & {
@@ -43,6 +45,7 @@ if (!globalStore.__pulseStore) {
     safetyCheckIns: [],
     moments: [],
     pushSubscriptions: [],
+    upgradeInterests: [],
   };
 }
 
@@ -55,6 +58,7 @@ export const notifications = globalStore.__pulseStore.notifications;
 export const safetyCheckIns = globalStore.__pulseStore.safetyCheckIns;
 export const moments = globalStore.__pulseStore.moments;
 export const pushSubscriptions = globalStore.__pulseStore.pushSubscriptions;
+export const upgradeInterests = globalStore.__pulseStore.upgradeInterests;
 
 export function seedData() {
   users.clear();
@@ -65,5 +69,6 @@ export function seedData() {
   safetyCheckIns.length = 0;
   moments.length = 0;
   pushSubscriptions.length = 0;
+  upgradeInterests.length = 0;
   circles.clear();
 }

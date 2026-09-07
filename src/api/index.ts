@@ -8,6 +8,7 @@ import { checkInsApi } from './checkIns.api';
 import { momentsApi } from './moments.api';
 import { pushApi } from './push.api';
 import { insightsApi } from './insights.api';
+import { billingApi } from './billing.api';
 
 export const api = {
   ...usersApi,
@@ -20,4 +21,5 @@ export const api = {
   ...momentsApi,
   ...pushApi,
   ...insightsApi,
+  ...billingApi,
 };

@@ -7,3 +7,4 @@ export * from './notification.types.js';
 export * from './checkIn.types.js';
 export * from './moment.types.js';
 export * from './insight.types.js';
+export * from './billing.types.js';
