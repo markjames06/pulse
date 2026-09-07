@@ -120,7 +120,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-dvh text-zinc-900 flex flex-col font-sans selection:bg-blue-500/20 selection:text-zinc-950">
+    <div className="app-shell min-h-dvh text-zinc-900 flex flex-col selection:bg-blue-500/20 selection:text-zinc-950">
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -138,6 +138,13 @@ export default function App() {
         onOpenSettings={() => setIsSettingsOpen(true)}
         realtimeStatus={realtimeStatus}
       />
+
+      <div className="app-status-strip hidden sm:flex" aria-label="Current circle status">
+        <span className="app-status-dot" />
+        <span>{activeCircle?.name || 'Your circle'}</span>
+        <span className="app-status-divider" />
+        <span>{activeCircle?.members.length || 0} trusted members</span>
+      </div>
 
       {activeUserShare && (
         <ActiveShareBanner activeShare={activeUserShare} onStopShare={handleStopShare} />

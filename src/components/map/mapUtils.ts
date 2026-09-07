@@ -10,15 +10,25 @@ const OSM_TILE_OPTIONS: L.TileLayerOptions = {
   maxZoom: 19,
 };
 
-export function applyMapTiles(map: L.Map, tileMode: 'dark' | 'street') {
+const SATELLITE_TILE_URL = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+const SATELLITE_TILE_OPTIONS: L.TileLayerOptions = {
+  attribution: 'Tiles &copy; Esri',
+  maxZoom: 19,
+};
+
+export function applyMapTiles(map: L.Map, tileMode: 'auto' | 'street' | 'satellite') {
   map.eachLayer((layer) => {
     if (layer instanceof L.TileLayer) {
       map.removeLayer(layer);
     }
   });
 
-  L.tileLayer(OSM_TILE_URL, OSM_TILE_OPTIONS).addTo(map);
-  map.getContainer().classList.toggle('pulse-dark-tiles', tileMode === 'dark');
+  if (tileMode === 'satellite') {
+    L.tileLayer(SATELLITE_TILE_URL, SATELLITE_TILE_OPTIONS).addTo(map);
+  } else {
+    L.tileLayer(OSM_TILE_URL, OSM_TILE_OPTIONS).addTo(map);
+  }
+  map.getContainer().classList.toggle('pulse-dark-tiles', false);
 }
 
 export function getMemoryPinIconSvg(value?: string): string {

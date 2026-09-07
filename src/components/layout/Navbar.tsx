@@ -65,8 +65,8 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <>
-      <header className="sticky top-0 z-[1100] md:fixed md:inset-y-0 md:left-0 md:w-24 md:border-r md:border-b-0 bg-[#f7f7f4] border-b border-black/[0.08]">
-        <div className="max-w-6xl mx-auto px-4 h-[4.25rem] md:h-full md:px-3 md:py-6 md:flex-col md:justify-start flex items-center justify-between gap-3">
+      <header className="pulse-navbar sticky top-0 z-[1100] md:fixed md:inset-y-0 md:left-0 md:w-[5.5rem] md:border-r md:border-b-0 bg-[#f7f7f4] border-b border-black/[0.08]">
+        <div className="max-w-6xl mx-auto px-4 h-[4.25rem] md:h-full md:px-2 md:py-5 md:flex-col md:justify-start flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <button
               type="button"
@@ -90,7 +90,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <button
                 type="button"
                 onClick={() => setIsCircleDropdownOpen((open) => !open)}
-                className="flex items-center gap-2 max-w-[180px] px-3.5 py-2 rounded-full bg-white/70 border border-black/[0.07] shadow-sm text-xs font-medium text-zinc-700 hover:bg-white transition-colors"
+                className="pulse-circle-switcher flex items-center gap-2 max-w-[180px] px-3.5 py-2 rounded-full bg-white/70 border border-black/[0.07] shadow-sm text-xs font-medium text-zinc-700 hover:bg-white transition-colors"
               >
                 <span className="truncate">{activeCircle?.name || 'No circle'}</span>
                 <ChevronDown className={`w-3.5 h-3.5 text-zinc-400 ${isCircleDropdownOpen ? 'rotate-180' : ''}`} />
@@ -178,8 +178,8 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
       </header>
 
-      <nav className="md:hidden fixed bottom-0 inset-x-0 z-[1100] bg-[#f7f7f4] border-t border-black/[0.08] pb-[env(safe-area-inset-bottom)]">
-        <div className="grid grid-cols-6 h-[4.5rem] px-1">
+      <nav className="pulse-mobile-nav md:hidden fixed bottom-0 inset-x-0 z-[1100] bg-[#f7f7f4] border-t border-black/[0.08] pb-[env(safe-area-inset-bottom)]">
+        <div className="flex h-[4.5rem] gap-1 overflow-x-auto px-1">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const active = activeTab === tab.id;
@@ -188,7 +188,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex flex-col items-center justify-center gap-1.5 my-1 rounded-[14px] text-[10px] font-medium transition-colors ${
+                className={`flex min-w-[16.66%] flex-col items-center justify-center gap-1.5 my-1 rounded-[14px] text-[10px] font-medium transition-colors ${
                   active ? 'bg-zinc-900 text-white' : 'text-zinc-400 hover:text-zinc-900'
                 }`}
               >

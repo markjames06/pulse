@@ -27,7 +27,7 @@
 /* Pulse v2: paper / ink / cobalt. These overrides intentionally replace the previous
    soft glass treatment while keeping the existing component behavior intact. */
 @layer utilities {
-  .pulse-page { background: #f7f7f4; }
+  .pulse-page { background-color: #f7f7f4; background-image: linear-gradient(rgba(17,19,24,.025) 1px, transparent 1px), linear-gradient(90deg, rgba(17,19,24,.025) 1px, transparent 1px); background-size: 32px 32px; }
   .pulse-page .bg-white, .pulse-page .bg-white\/65, .pulse-page .bg-white\/70, .pulse-page .bg-white\/90,
   .pulse-page .bg-gray-50 { background-color: #fff; }
   .pulse-page .border-gray-200, .pulse-page .border-gray-100, .pulse-page .border-black\/8 { border-color: #e4e5e1; }
@@ -45,7 +45,7 @@
 }
 
 @media (min-width: 768px) {
-  #root > div > main { padding-left: 6rem; }
+  #root > div > main.pulse-page { padding-left: 5.5rem; }
 }
 
 /* Convert legacy dark surfaces to the new light editorial treatment. */
@@ -179,6 +179,56 @@
 .leaflet-control-zoom a:last-child { border-radius: 0 0 12px 12px; }
 .custom-pulse-marker { background:transparent; border:none; }
 .leaflet-marker-icon { transition: transform .8s linear; }
+
+.pulse-navbar { box-shadow: 1px 0 0 rgba(17,19,24,.02); }
+.app-shell { font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif; background: #f4f5ef; }
+.app-shell .pulse-card { position: relative; overflow: hidden; border-color: #dce1d8 !important; box-shadow: 0 10px 28px rgba(34,45,37,.045) !important; }
+.app-shell .pulse-card::after { content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%; background: #dce7ff; opacity: .8; }
+.app-shell .pulse-card:hover { box-shadow: 0 16px 34px rgba(34,45,37,.08) !important; transform: translateY(-2px); }
+.app-shell .pulse-card > * { position: relative; z-index: 1; }
+.pulse-drawer { border-left-color: #dce1d8 !important; box-shadow: -24px 0 60px rgba(17,19,24,.16) !important; }
+.pulse-drawer > div:first-child { background: #fbfcf8; border-bottom-color: #e4e8e0 !important; color: #111318; }
+.pulse-drawer > div:first-child [class*="bg-indigo-600"] { background: #eef1ff; border-color: #dce3ff; }
+.pulse-drawer > div:first-child [class*="text-indigo-400"] { color: #2855ff; }
+.pulse-drawer > button { background: #eef1ff; border-color: #dce3ff; color: #2855ff; }
+.safety-panel { box-shadow: 0 18px 38px rgba(17,19,24,.15); border-color: rgba(255,255,255,.92); }
+.safety-panel button { min-height: 40px; transition: transform .18s ease, filter .18s ease; }
+.safety-panel button:hover { transform: translateY(-1px); filter: brightness(1.04); }
+.app-status-strip { position: fixed; z-index: 1000; top: 1.15rem; right: 5.5rem; align-items: center; gap: .5rem; padding: .45rem .7rem; border: 1px solid rgba(217,221,211,.9); border-radius: 999px; background: rgba(255,255,255,.78); color: #73766f; font-size: 10px; font-weight: 600; box-shadow: 0 8px 22px rgba(17,19,24,.05); backdrop-filter: blur(14px); }
+.app-status-dot { width: 6px; height: 6px; border-radius: 50%; background: #16a36a; box-shadow: 0 0 0 3px rgba(22,163,106,.12); }
+.app-status-divider { width: 1px; height: 12px; background: #dfe2dc; }
+.pulse-circle-switcher { box-shadow: 0 6px 18px rgba(17,19,24,.05); }
+.app-shell .text-2xl, .app-shell .text-3xl { letter-spacing: -.04em; }
+.app-shell .ui-primary-button { border-radius: 12px; }
+.app-shell input::placeholder, .app-shell textarea::placeholder { color: #9aa097; }
+.app-shell .pulse-content > .pulse-header { margin-bottom: 2px; }
+.pulse-mobile-nav { box-shadow: 0 -10px 30px rgba(17,19,24,.06); }
+.pulse-share-banner { background: #111318; box-shadow: 0 8px 24px rgba(17,19,24,.14); }
+.pulse-share-banner .font-mono { font-family: "Plus Jakarta Sans", sans-serif; letter-spacing: .02em; }
+.pulse-share-banner button { min-height: 36px; transition: transform .18s ease, background-color .18s ease; }
+.pulse-share-banner button:hover { background: #eef1ff; transform: translateY(-1px); }
+#root .pulse-modal { font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif; }
+#root .pulse-modal h3 { letter-spacing: -.025em; }
+#root .pulse-modal form { max-height: min(70dvh, 560px); overflow-y: auto; padding-right: 2px; }
+.pulse-mobile-nav::-webkit-scrollbar { display: none; }
+.pulse-mobile-nav > div { scrollbar-width: none; gap: .25rem; }
+.pulse-mobile-nav > div > button { flex: 1 1 0; min-width: 0; }
+.map-control-button, .map-action-bar { box-shadow: 0 12px 28px rgba(17,19,24,.14); }
+.map-control-button:hover { transform: translateY(-1px); box-shadow: 0 16px 30px rgba(17,19,24,.17); }
+.map-layer-panel { margin-top: .15rem; box-shadow: 0 16px 34px rgba(17,19,24,.16); }
+.map-action-bar { border-color: rgba(255,255,255,.9); background: rgba(255,255,255,.88); backdrop-filter: blur(16px); }
+.map-action-bar button { min-height: 42px; transition: transform .18s ease, background-color .18s ease, color .18s ease; }
+.pulse-content { animation: contentReveal .45s cubic-bezier(.22,1,.36,1) both; }
+@keyframes contentReveal { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 767px) {
+  #root > div > main.pulse-page { min-height: calc(100dvh - 8.75rem); }
+  .pulse-content { padding-bottom: 7rem !important; }
+  .pulse-header h2 { font-size: 1.65rem; line-height: 1.08; }
+  .pulse-drawer { width: 100vw; max-width: none; }
+  .safety-panel { bottom: 9rem; }
+}
+@media (min-width: 768px) { .app-shell .pulse-content { padding-top: 5.5rem; } }
+@media (prefers-reduced-motion: reduce) { .pulse-content { animation: none; } }
 
 .landing-page { font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif; }
 .landing-reveal { animation: landingRise .8s cubic-bezier(.22,1,.36,1) both; }

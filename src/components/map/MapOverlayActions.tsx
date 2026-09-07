@@ -13,14 +13,14 @@ export const MapOverlayActions: React.FC<MapOverlayActionsProps> = ({
   onOpenMemoryPinModal,
 }) => {
   return (
-    <div className="absolute bottom-20 md:bottom-6 left-3 right-3 md:left-auto md:right-6 md:translate-x-0 z-[1000] flex items-center gap-1 p-1.5 bg-white border border-black/10 rounded-[18px] shadow-xl md:w-auto">
+    <div className="map-action-bar absolute bottom-20 md:bottom-6 left-3 right-3 md:left-auto md:right-6 md:translate-x-0 z-[1000] flex items-center gap-1 p-1.5 bg-white border border-black/10 rounded-[18px] shadow-xl md:w-auto">
       <button
         type="button"
         onClick={onOpenShareModal}
         className="ui-primary-button flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-3 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-semibold rounded-[13px]"
       >
         <Share2 className="w-4 h-4" />
-        <span className="hidden xs:inline sm:inline">Share</span>
+        <span>Share</span>
       </button>
       <button
         type="button"

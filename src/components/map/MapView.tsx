@@ -39,7 +39,7 @@ export const MapView: React.FC<MapViewProps> = ({
   const userGpsMarkerRef = useRef<L.Marker | null>(null);
   const hasFittedInitialMarkersRef = useRef(false);
 
-  const [tileMode, setTileMode] = useState<'dark' | 'street'>('street');
+  const [tileMode, setTileMode] = useState<'auto' | 'street' | 'satellite'>('auto');
   const [markerVisibility, setMarkerVisibility] = useState({
     activeShares: true,
     pings: true,
@@ -254,7 +254,7 @@ export const MapView: React.FC<MapViewProps> = ({
       {/* Map Controls */}
       <MapControls
         tileMode={tileMode}
-        onToggleTileMode={() => setTileMode((prev) => (prev === 'dark' ? 'street' : 'dark'))}
+        onToggleTileMode={() => setTileMode((prev) => prev === 'auto' ? 'street' : prev === 'street' ? 'satellite' : 'auto')}
         onLocateUser={handleLocateUser}
         markerVisibility={markerVisibility}
         onToggleVisibility={handleToggleVisibility}
