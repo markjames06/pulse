@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Navbar, ActiveShareBanner, NotificationsDrawer, SafetyCheckInPanel } from './components/layout';
 import { MapView } from './components/map';
 import { CirclesManager } from './components/circles';
@@ -17,11 +17,52 @@ import { usePulseState } from './hooks/usePulseState';
 import { useModalState } from './hooks/useModalState';
 import { UserProfile } from './types';
 import { LandingPage } from './components/LandingPage';
+import { OnboardingTutorial } from './components/OnboardingTutorial';
+import { SplashScreen } from './components/SplashScreen';
+import { LoadingSkeleton } from './components/LoadingSkeleton';
+
+interface InstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'map' | 'circles' | 'pings' | 'memory_pins' | 'moments' | 'plans'>('map');
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+  const [installPrompt, setInstallPrompt] = useState<InstallPromptEvent | null>(null);
+  const [showTutorial, setShowTutorial] = useState(() => localStorage.getItem('pulse:tutorial-complete') !== 'true');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [showSplash, setShowSplash] = useState(true);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setShowSplash(false), 900);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    const handleInstallPrompt = (event: Event) => {
+      event.preventDefault();
+      setInstallPrompt(event as InstallPromptEvent);
+    };
+    window.addEventListener('beforeinstallprompt', handleInstallPrompt);
+    return () => window.removeEventListener('beforeinstallprompt', handleInstallPrompt);
+  }, []);
+
+  const handleInstall = async () => {
+    if (!installPrompt) {
+      window.alert('To install Pulse, open your browser menu and choose “Add to Home screen” or “Install Pulse”.');
+      return;
+    }
+    await installPrompt.prompt();
+    await installPrompt.userChoice;
+    setInstallPrompt(null);
+  };
+
+  const finishTutorial = () => {
+    localStorage.setItem('pulse:tutorial-complete', 'true');
+    setShowTutorial(false);
+  };
 
   const {
     currentUserId,
@@ -83,14 +124,7 @@ export default function App() {
   };
 
   if (isBooting) {
-    return (
-      <div className="min-h-dvh flex flex-col items-center justify-center gap-3 text-zinc-500 text-sm">
-        <span className="w-10 h-10 rounded-[14px] bg-zinc-900 text-white flex items-center justify-center shadow-lg shadow-zinc-900/15">
-          <span className="w-2 h-2 rounded-full bg-sky-400 animate-pulse" />
-        </span>
-        <span className="font-medium tracking-tight">Loading Pulse</span>
-      </div>
-    );
+    return showSplash ? <SplashScreen /> : <LoadingSkeleton />;
   }
 
   if (!currentUser) {
@@ -105,6 +139,7 @@ export default function App() {
             setAuthMode('login');
             setIsAuthOpen(true);
           }}
+          onInstall={() => void handleInstall()}
         />
         <RegisterAccountModal
           isOpen={isAuthOpen}
@@ -137,6 +172,9 @@ export default function App() {
         }}
         onOpenSettings={() => setIsSettingsOpen(true)}
         realtimeStatus={realtimeStatus}
+        onInstall={() => void handleInstall()}
+        isSidebarOpen={isSidebarOpen}
+        onToggleSidebar={() => setIsSidebarOpen((open) => !open)}
       />
 
       <div className="app-status-strip hidden sm:flex" aria-label="Current circle status">
@@ -157,11 +195,14 @@ export default function App() {
           ownCheckIn={activeUserCheckIn}
           onStart={handleStartSafetyCheckIn}
           onComplete={handleCompleteSafetyCheckIn}
+          isSidebarOpen={isSidebarOpen}
         />
       )}
 
+      {showTutorial && <OnboardingTutorial onFinish={finishTutorial} />}
+
       <main
-        className={`pulse-page flex-1 relative overflow-x-hidden ${
+        className={`pulse-page flex-1 relative overflow-x-hidden ${isSidebarOpen ? 'sidebar-open' : 'sidebar-closed'} ${
           activeTab !== 'map' ? 'pb-24 md:pb-8' : 'pb-0'
         }`}
       >

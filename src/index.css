@@ -45,7 +45,8 @@
 }
 
 @media (min-width: 768px) {
-  #root > div > main.pulse-page { padding-left: 5.5rem; }
+  #root > div > main.pulse-page.sidebar-open { padding-left: 16rem; }
+  #root > div > main.pulse-page.sidebar-closed { padding-left: 4.75rem; }
 }
 
 /* Convert legacy dark surfaces to the new light editorial treatment. */
@@ -180,8 +181,42 @@
 .custom-pulse-marker { background:transparent; border:none; }
 .leaflet-marker-icon { transition: transform .8s linear; }
 
-.pulse-navbar { box-shadow: 1px 0 0 rgba(17,19,24,.02); }
+.pulse-navbar { box-shadow: 1px 0 0 rgba(17,19,24,.02); transition: width .25s cubic-bezier(.22,1,.36,1); }
+.pulse-navbar.sidebar-open { width: 16rem; }
+.pulse-navbar.sidebar-closed { width: 4.75rem; }
+.pulse-page.sidebar-open, .pulse-page.sidebar-closed { transition: padding-left .25s cubic-bezier(.22,1,.36,1); }
 .app-shell { font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif; background: #f4f5ef; }
+.pulse-logo { display: inline-flex; align-items: center; gap: .65rem; color: #111318; }
+.pulse-logo-mark { position: relative; display: inline-flex; width: 2.35rem; height: 2.35rem; align-items: center; justify-content: center; border-radius: .8rem; background: #111318; color: #72d5ff; overflow: hidden; }
+.pulse-logo-core { width: .48rem; height: .48rem; border-radius: 50%; background: currentColor; z-index: 2; }
+.pulse-logo-ring { position: absolute; border: 1.5px solid currentColor; border-radius: 50%; opacity: .7; }
+.pulse-logo-ring-one { width: 1.1rem; height: 1.1rem; }
+.pulse-logo-ring-two { width: 1.75rem; height: 1.75rem; opacity: .35; }
+.pulse-logo-wordmark { font-size: 1rem; font-weight: 700; letter-spacing: -.04em; }
+.pulse-logo-large .pulse-logo-mark { width: 3.2rem; height: 3.2rem; border-radius: 1rem; }
+.pulse-logo-large .pulse-logo-wordmark { font-size: 1.35rem; }
+.onboarding-card { animation: onboardingIn .45s cubic-bezier(.22,1,.36,1) both; }
+.tutorial-feature-preview { box-shadow: inset 3px 0 #2855ff, 0 8px 20px rgba(40,85,255,.06); }
+@keyframes onboardingIn { from { opacity: 0; transform: translateY(16px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+.pulse-splash { position: fixed; inset: 0; z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.1rem; overflow: hidden; background: #111318; color: #aeb7b0; }
+.pulse-splash .pulse-logo { color: #fff; position: relative; z-index: 2; }
+.pulse-splash-orbit { position: absolute; border: 1px solid rgba(114,213,255,.14); border-radius: 50%; animation: splashOrbit 2.8s ease-out infinite; }
+.pulse-splash-orbit-one { width: 18rem; height: 18rem; }
+.pulse-splash-orbit-two { width: 30rem; height: 30rem; animation-delay: .7s; }
+@keyframes splashOrbit { 0% { opacity: 0; transform: scale(.7); } 35% { opacity: 1; } 100% { opacity: 0; transform: scale(1.15); } }
+.pulse-splash-loader { position: relative; z-index: 2; display: flex; gap: .3rem; }
+.pulse-splash-loader span { width: .32rem; height: .32rem; border-radius: 50%; background: #72d5ff; animation: splashDots 1s ease-in-out infinite; }
+.pulse-splash-loader span:nth-child(2) { animation-delay: .15s; }.pulse-splash-loader span:nth-child(3) { animation-delay: .3s; }
+@keyframes splashDots { 0%, 100% { opacity: .3; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-4px); } }
+.pulse-splash p { position: relative; z-index: 2; margin: 0; font-size: .7rem; font-weight: 600; letter-spacing: .04em; }
+.pulse-loading-shell { min-height: 100dvh; background: #f4f5ef; padding: 1.25rem; }
+.pulse-loading-header { display: flex; align-items: center; justify-content: space-between; max-width: 70rem; margin: 0 auto; }
+.pulse-loading-content { max-width: 70rem; margin: 4rem auto 0; }
+.pulse-skeleton { display: block; background: linear-gradient(100deg, #e5e9e2 20%, #f7f8f5 40%, #e5e9e2 60%); background-size: 200% 100%; animation: skeletonShimmer 1.4s linear infinite; border-radius: .8rem; }
+.pulse-skeleton-logo { width: 8rem; height: 2.4rem; }.pulse-skeleton-pill { width: 8rem; height: 1.8rem; }.pulse-skeleton-title { width: min(22rem, 70%); height: 2.2rem; }.pulse-skeleton-line { width: min(30rem, 90%); height: 1rem; margin-top: 1rem; }.pulse-skeleton-map { height: min(52dvh, 30rem); margin-top: 2rem; }.pulse-loading-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1rem; }.pulse-loading-cards .pulse-skeleton { height: 5rem; }
+@keyframes skeletonShimmer { to { background-position: -200% 0; } }
+@media (max-width: 640px) { .pulse-loading-content { margin-top: 3rem; }.pulse-loading-cards { grid-template-columns: 1fr; }.pulse-loading-cards .pulse-skeleton { height: 3.5rem; } }
+@media (prefers-reduced-motion: reduce) { .pulse-splash-orbit, .pulse-splash-loader span, .pulse-skeleton { animation: none; } }
 .app-shell .pulse-card { position: relative; overflow: hidden; border-color: #dce1d8 !important; box-shadow: 0 10px 28px rgba(34,45,37,.045) !important; }
 .app-shell .pulse-card::after { content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%; background: #dce7ff; opacity: .8; }
 .app-shell .pulse-card:hover { box-shadow: 0 16px 34px rgba(34,45,37,.08) !important; transform: translateY(-2px); }

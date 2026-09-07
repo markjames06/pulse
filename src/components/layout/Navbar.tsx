@@ -12,8 +12,11 @@ import {
   Check,
   CalendarDays,
   CreditCard,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from 'lucide-react';
 import { getInitials } from '../../utils/formatters';
+import { PulseLogo } from '../ui/PulseLogo';
 
 interface NavbarProps {
   activeTab: 'map' | 'circles' | 'pings' | 'memory_pins' | 'moments' | 'plans';
@@ -25,7 +28,10 @@ interface NavbarProps {
   unreadNotificationsCount: number;
   onOpenNotifications: () => void;
   onOpenSettings: () => void;
+  onInstall: () => void;
   realtimeStatus: 'connecting' | 'live' | 'reconnecting';
+  isSidebarOpen: boolean;
+  onToggleSidebar: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -38,7 +44,10 @@ export const Navbar: React.FC<NavbarProps> = ({
   unreadNotificationsCount,
   onOpenNotifications,
   onOpenSettings,
+  onInstall,
   realtimeStatus,
+  isSidebarOpen,
+  onToggleSidebar,
 }) => {
   const [isCircleDropdownOpen, setIsCircleDropdownOpen] = useState(false);
   const circleDropdownRef = useRef<HTMLDivElement>(null);
@@ -65,21 +74,18 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <>
-      <header className="pulse-navbar sticky top-0 z-[1100] md:fixed md:inset-y-0 md:left-0 md:w-[5.5rem] md:border-r md:border-b-0 bg-[#f7f7f4] border-b border-black/[0.08]">
-        <div className="max-w-6xl mx-auto px-4 h-[4.25rem] md:h-full md:px-2 md:py-5 md:flex-col md:justify-start flex items-center justify-between gap-3">
+      <header className={`pulse-navbar sticky top-0 z-[1100] md:fixed md:inset-y-0 md:left-0 md:border-r md:border-b-0 bg-[#f7f7f4] border-b border-black/[0.08] ${isSidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
+        <div className="max-w-6xl mx-auto px-4 h-[4.25rem] md:h-full md:px-5 md:py-6 md:flex-col md:items-stretch md:justify-start flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <button
               type="button"
               onClick={() => setActiveTab('map')}
               className="flex items-center gap-2.5 shrink-0 group"
             >
-              <span className="w-10 h-10 rounded-[14px] bg-[#111318] text-white flex items-center justify-center md:group-hover:scale-105 transition-transform">
-                <Radio className="w-4 h-4 text-sky-300" />
-              </span>
-              <span className="font-semibold tracking-[-0.02em] text-zinc-900 md:hidden">Pulse</span>
+              <PulseLogo size="small" showWordmark={isSidebarOpen} />
             </button>
             <span
-              className="hidden sm:inline-flex items-center gap-1.5 text-[10px] font-medium text-zinc-500"
+              className={`hidden sm:inline-flex md:absolute items-center gap-1.5 text-[10px] font-medium text-zinc-500 ${isSidebarOpen ? 'md:left-5 md:top-[5.25rem]' : 'md:left-1/2 md:-translate-x-1/2 md:top-[4.9rem]'}`}
               title={`Live updates: ${realtimeStatus}`}
             >
               <span className={`w-1.5 h-1.5 rounded-full ${realtimeStatus === 'live' ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'}`} />
@@ -124,7 +130,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
           </div>
 
-          <nav className="hidden md:flex md:flex-col items-center gap-2 p-0 md:mt-auto md:mb-auto">
+          <nav className="hidden md:flex md:flex-col items-stretch gap-1.5 p-0 md:mt-20 md:mb-auto">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const active = activeTab === tab.id;
@@ -133,22 +139,24 @@ export const Navbar: React.FC<NavbarProps> = ({
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center justify-center gap-2 px-2 py-2.5 rounded-[13px] text-xs font-medium transition-all md:flex-col md:w-[4.5rem] ${
+                    className={`flex items-center ${isSidebarOpen ? 'justify-start gap-3 px-3' : 'justify-center px-2'} py-3 rounded-[13px] text-xs font-semibold transition-all ${
                     active ? 'bg-[#111318] text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-900 hover:bg-black/[0.04]'
                   }`}
                 >
                   <Icon className="w-3.5 h-3.5" />
-                  {tab.label}
+                  <span className={isSidebarOpen ? '' : 'sr-only'}>{tab.label}</span>
                 </button>
               );
             })}
           </nav>
 
           <div className="flex items-center gap-1.5 md:flex-col md:mt-auto">
+            <button type="button" onClick={onToggleSidebar} className="hidden md:flex w-full items-center justify-center gap-3 rounded-[13px] px-3 py-3 text-xs font-semibold text-[#73766f] hover:bg-white" title={isSidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'} aria-label={isSidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}>{isSidebarOpen ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeftOpen className="w-4 h-4" />}{isSidebarOpen && <span>Collapse</span>}</button>
+            <button type="button" onClick={onInstall} className={`hidden md:flex w-full items-center ${isSidebarOpen ? 'justify-start gap-3 px-3' : 'justify-center px-2'} rounded-[13px] py-3 text-xs font-semibold text-[#73766f] hover:bg-white`} title="Install Pulse"><Radio className="w-3.5 h-3.5" />{isSidebarOpen && <span>Install app</span>}</button>
             <button
               type="button"
               onClick={onOpenNotifications}
-              className="relative w-11 h-11 md:w-9 md:h-9 rounded-full bg-white/70 border border-black/[0.07] shadow-sm text-zinc-700 flex items-center justify-center hover:bg-white transition-colors"
+              className="relative w-11 h-11 md:w-full md:h-11 md:rounded-[13px] rounded-full bg-white/70 border border-black/[0.07] shadow-sm text-zinc-700 flex items-center justify-center hover:bg-white transition-colors"
               aria-label="Notifications"
             >
               <Bell className="w-4 h-4" />
@@ -161,7 +169,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               type="button"
               onClick={onOpenSettings}
-              className="w-11 h-11 md:w-9 md:h-9 rounded-full bg-white/70 border border-black/[0.07] shadow-sm text-zinc-700 flex items-center justify-center hover:bg-white transition-colors"
+              className="w-11 h-11 md:w-full md:h-11 md:rounded-[13px] rounded-full bg-white/70 border border-black/[0.07] shadow-sm text-zinc-700 flex items-center justify-center hover:bg-white transition-colors"
               aria-label="Settings"
             >
               <Settings className="w-4 h-4" />
@@ -169,7 +177,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               type="button"
               onClick={onOpenSettings}
-              className={`w-11 h-11 md:w-9 md:h-9 rounded-full ${currentUser?.avatarColor || 'bg-zinc-800'} text-white text-[11px] font-semibold flex items-center justify-center`}
+              className={`w-11 h-11 md:w-full md:h-11 md:rounded-[13px] rounded-full ${currentUser?.avatarColor || 'bg-zinc-800'} text-white text-[11px] font-semibold flex items-center justify-center`}
               aria-label="Account"
             >
               {getInitials(currentUser?.displayName)}

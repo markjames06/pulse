@@ -9,6 +9,7 @@ interface SafetyCheckInPanelProps {
   ownCheckIn?: SafetyCheckIn;
   onStart: (durationMinutes: number) => Promise<void>;
   onComplete: (checkInId: string) => Promise<void>;
+  isSidebarOpen?: boolean;
 }
 
 export const SafetyCheckInPanel: React.FC<SafetyCheckInPanelProps> = ({
@@ -17,6 +18,7 @@ export const SafetyCheckInPanel: React.FC<SafetyCheckInPanelProps> = ({
   ownCheckIn,
   onStart,
   onComplete,
+  isSidebarOpen = true,
 }) => {
   const [remaining, setRemaining] = useState('');
   const [busy, setBusy] = useState(false);
@@ -39,7 +41,7 @@ export const SafetyCheckInPanel: React.FC<SafetyCheckInPanelProps> = ({
   };
 
   return (
-    <section className="safety-panel absolute bottom-24 left-3 right-3 md:bottom-6 md:left-28 md:right-auto z-[1000] max-w-sm rounded-2xl bg-white/95 border border-black/10 shadow-xl p-3 backdrop-blur-sm">
+    <section className={`safety-panel absolute bottom-24 left-3 right-3 md:bottom-6 md:right-auto z-[1000] max-w-sm rounded-2xl bg-white/95 border border-black/10 shadow-xl p-3 backdrop-blur-sm ${isSidebarOpen ? 'md:left-[17rem]' : 'md:left-[5.75rem]'}`}>
       <div className="flex items-start gap-2">
         <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
         <div className="min-w-0 flex-1">
