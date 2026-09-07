@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from '../api';
 import { Circle, LocationShare, MemoryPin, NotificationItem, Ping, UserProfile } from '../types';
 import { getRandomCoordsOffset } from '../utils/formatters';
@@ -13,6 +13,7 @@ export function usePulseState() {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [isRegisterRequired, setIsRegisterRequired] = useState(false);
   const [isBooting, setIsBooting] = useState(true);
+  const notificationIdsRef = useRef(new Set<string>());
 
   const loadData = useCallback(async () => {
     try {
@@ -61,6 +62,7 @@ export function usePulseState() {
       setPings(fetchedPings);
       setMemoryPins(fetchedPins);
       setNotifications(fetchedNotifs);
+      notificationIdsRef.current = new Set(fetchedNotifs.map((notification) => notification.id));
     } catch {
       setCurrentUser(null);
       setCircles([]);
@@ -87,6 +89,43 @@ export function usePulseState() {
 
     return () => clearInterval(interval);
   }, [loadData, isRegisterRequired]);
+
+  useEffect(() => {
+    if (isRegisterRequired || !activeCircleId) return undefined;
+
+    const eventSource = new EventSource(`/api/events?circleId=${encodeURIComponent(activeCircleId)}`);
+    eventSource.onmessage = (message) => {
+      const event = JSON.parse(message.data) as { ping?: Ping; notification?: NotificationItem };
+      if (event.ping) {
+        setPings((current) => [event.ping!, ...current.filter((ping) => ping.id !== event.ping!.id)]);
+      }
+      if (event.notification) {
+        const notification = event.notification;
+        setNotifications((current) => [notification, ...current.filter((item) => item.id !== notification.id)]);
+        if (!notificationIdsRef.current.has(notification.id)) {
+          notificationIdsRef.current.add(notification.id);
+          if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+            new Notification(notification.title, { body: notification.body, tag: notification.id });
+          }
+          try {
+            const context = new AudioContext();
+            const oscillator = context.createOscillator();
+            const gain = context.createGain();
+            oscillator.frequency.value = 740;
+            gain.gain.setValueAtTime(0.06, context.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.2);
+            oscillator.connect(gain).connect(context.destination);
+            oscillator.start();
+            oscillator.stop(context.currentTime + 0.2);
+          } catch {
+            // Audio can be blocked until the user interacts with the page.
+          }
+        }
+      }
+    };
+
+    return () => eventSource.close();
+  }, [activeCircleId, isRegisterRequired]);
 
   const currentUserId = currentUser?.id || '';
   const activeCircle = circles.find((circle) => circle.id === activeCircleId) || circles[0];
@@ -121,9 +160,17 @@ export function usePulseState() {
     let lng: number | undefined;
 
     if (attachLocation) {
-      const coords = getRandomCoordsOffset();
-      lat = coords.lat;
-      lng = coords.lng;
+      if (navigator.geolocation) {
+        const position = await new Promise<GeolocationPosition | null>((resolve) => {
+          navigator.geolocation.getCurrentPosition(resolve, () => resolve(null), {
+            enableHighAccuracy: true,
+            maximumAge: 0,
+            timeout: 10000,
+          });
+        });
+        lat = position?.coords.latitude;
+        lng = position?.coords.longitude;
+      }
     }
 
     await api.sendPing({
@@ -133,6 +180,11 @@ export function usePulseState() {
       longitude: lng,
     });
     await loadData();
+  };
+
+  const handleMarkAllNotificationsRead = async () => {
+    await api.markAllRead(activeCircleId);
+    setNotifications((current) => current.map((notification) => ({ ...notification, read: true })));
   };
 
   const handleSaveMemoryPin = async (
@@ -211,6 +263,7 @@ export function usePulseState() {
     handleStartShare,
     handleStopShare,
     handleSendPing,
+    handleMarkAllNotificationsRead,
     handleSaveMemoryPin,
     handleDeleteMemoryPin,
     handleCreateCircle,

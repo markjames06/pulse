@@ -4,6 +4,7 @@ import { getAuthUserId, requireAuth } from '../middleware/auth.middleware.js';
 import { rateLimiter } from '../middleware/rateLimiter.js';
 import { sanitizeText } from '../utils/sanitizer.js';
 import { publicUser } from '../utils/publicUser.js';
+import { publishCircleEvent } from '../store/events.js';
 import { createMemoryPinSchema, MemoryPin } from '../../src/types/index.js';
 
 export const memoryPinsRouter = Router();
@@ -61,6 +62,8 @@ memoryPinsRouter.post('/api/memory-pins', requireAuth, rateLimiter(10, 60000), (
     createdAt: new Date().toISOString(),
     read: false,
   });
+
+  publishCircleEvent(circleId, { notification: notifications[0] });
 
   res.status(201).json(newPin);
 });

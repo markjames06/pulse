@@ -35,6 +35,7 @@ export default function App() {
     handleStartShare,
     handleStopShare,
     handleSendPing,
+    handleMarkAllNotificationsRead,
     handleSaveMemoryPin,
     handleDeleteMemoryPin,
     handleCreateCircle,
@@ -89,7 +90,12 @@ export default function App() {
         onSelectCircle={setActiveCircleId}
         currentUser={currentUser}
         unreadNotificationsCount={notifications.filter((n) => !n.read).length}
-        onOpenNotifications={() => setIsNotificationsOpen(true)}
+        onOpenNotifications={() => {
+          setIsNotificationsOpen(true);
+          if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
+            void Notification.requestPermission();
+          }
+        }}
         onOpenSettings={() => setIsSettingsOpen(true)}
       />
 
@@ -177,6 +183,7 @@ export default function App() {
         isOpen={isNotificationsOpen}
         onClose={() => setIsNotificationsOpen(false)}
         notifications={notifications}
+        onMarkAllRead={handleMarkAllNotificationsRead}
       />
 
       <SettingsModal

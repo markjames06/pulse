@@ -81,7 +81,7 @@ export const PingsList: React.FC<PingsListProps> = ({
                   {ping.latitude !== undefined && ping.longitude !== undefined && (
                     <div className="mt-2.5 flex items-center gap-1.5 text-xs text-indigo-600 font-medium">
                       <MapPin className="w-3.5 h-3.5" />
-                      <span>Attached GPS Location ({ping.latitude.toFixed(4)}, {ping.longitude.toFixed(4)})</span>
+                      <span>Location shared from the map</span>
                     </div>
                   )}
                 </div>

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { X, Bookmark, MapPin } from 'lucide-react';
-import { getRandomCoordsOffset } from '../../utils/formatters';
 import { getMemoryPinIconSvg } from '../map/mapUtils';
 
 interface MemoryPinsModalProps {
@@ -39,10 +38,11 @@ export const MemoryPinsModal: React.FC<MemoryPinsModalProps> = ({
     if (!caption.trim()) return;
 
     setIsSubmitting(true);
-    const coords = getRandomCoordsOffset(initialLat, initialLng);
+    const latitude = initialLat ?? 14.599512;
+    const longitude = initialLng ?? 120.984222;
 
     try {
-      await onSaveMemoryPin(caption.trim(), emoji, coords.lat, coords.lng);
+      await onSaveMemoryPin(caption.trim(), emoji, latitude, longitude);
       setCaption('');
       setEmoji('pin');
       setIsSubmitting(false);
@@ -121,9 +121,9 @@ export const MemoryPinsModal: React.FC<MemoryPinsModalProps> = ({
           <div className="p-3 rounded-2xl bg-slate-800/60 border border-white/5 flex items-center gap-2 text-xs text-slate-400">
             <MapPin className="w-4 h-4 text-amber-400 shrink-0" />
             <span>
-              {initialLat && initialLng
-                ? `Pinned at coordinates (${initialLat.toFixed(4)}, ${initialLng.toFixed(4)})`
-                : 'Pinned at your current map view location'}
+              {initialLat !== undefined && initialLng !== undefined
+                ? 'Saved exactly where you tapped on the map'
+                : 'Saved at the center of the map'}
             </span>
           </div>
 

@@ -1,18 +1,20 @@
 import React from 'react';
 import { NotificationItem } from '../../types';
-import { X, Bell, Radio, Zap, Bookmark, UserPlus } from 'lucide-react';
+import { X, Bell, Radio, Zap, Bookmark, UserPlus, CheckCheck } from 'lucide-react';
 import { formatTimeAgo } from '../../utils/formatters';
 
 interface NotificationsDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   notifications: NotificationItem[];
+  onMarkAllRead: () => Promise<void>;
 }
 
 export const NotificationsDrawer: React.FC<NotificationsDrawerProps> = ({
   isOpen,
   onClose,
   notifications,
+  onMarkAllRead,
 }) => {
   if (!isOpen) return null;
 
@@ -50,12 +52,23 @@ export const NotificationsDrawer: React.FC<NotificationsDrawerProps> = ({
               <h3 className="font-bold text-base text-slate-100">Activity Notifications</h3>
             </div>
 
-            <button
-              onClick={onClose}
-              className="p-1.5 rounded-xl bg-slate-800 text-slate-400 hover:text-white transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => void onMarkAllRead()}
+                className="p-1.5 rounded-xl bg-slate-800 text-slate-400 hover:text-white transition-colors"
+                title="Mark all as read"
+                aria-label="Mark all as read"
+              >
+                <CheckCheck className="w-4 h-4" />
+              </button>
+              <button
+                onClick={onClose}
+                className="p-1.5 rounded-xl bg-slate-800 text-slate-400 hover:text-white transition-colors"
+                aria-label="Close notifications"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
           {/* List */}

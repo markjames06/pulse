@@ -37,6 +37,7 @@ export const MapView: React.FC<MapViewProps> = ({
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markersGroupRef = useRef<L.LayerGroup | null>(null);
   const userGpsMarkerRef = useRef<L.Marker | null>(null);
+  const hasFittedInitialMarkersRef = useRef(false);
 
   const [tileMode, setTileMode] = useState<'dark' | 'street'>('street');
   const [markerVisibility, setMarkerVisibility] = useState({
@@ -228,10 +229,11 @@ export const MapView: React.FC<MapViewProps> = ({
       });
     }
 
-    // Auto-fit map bounds if markers present
-    if (hasCoords && shares.length > 0) {
+    // Fit only once so live refreshes do not undo the user's zoom or position.
+    if (hasCoords && !hasFittedInitialMarkersRef.current) {
       try {
         mapInstanceRef.current.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+        hasFittedInitialMarkersRef.current = true;
       } catch (e) {
         console.log('Bounds fit notice:', e);
       }

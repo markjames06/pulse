@@ -5,6 +5,7 @@ import { rateLimiter } from '../middleware/rateLimiter.js';
 import { sanitizeText } from '../utils/sanitizer.js';
 import { publicUser } from '../utils/publicUser.js';
 import { createPingSchema, Ping } from '../../src/types/index.js';
+import { publishCircleEvent } from '../store/events.js';
 
 export const pingsRouter = Router();
 
@@ -60,6 +61,8 @@ pingsRouter.post('/api/pings', requireAuth, rateLimiter(10, 60000), (req: Reques
     createdAt: new Date().toISOString(),
     read: false,
   });
+
+  publishCircleEvent(circleId, { ping: newPing, notification: notifications[0] });
 
   res.status(201).json(newPing);
 });

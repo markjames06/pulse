@@ -4,6 +4,7 @@ import { getAuthUserId, requireAuth } from '../middleware/auth.middleware.js';
 import { rateLimiter } from '../middleware/rateLimiter.js';
 import { sanitizeText } from '../utils/sanitizer.js';
 import { publicUser } from '../utils/publicUser.js';
+import { publishCircleEvent } from '../store/events.js';
 import { createShareSchema, updateLocationSchema, LocationShare } from '../../src/types/index.js';
 
 export const sharesRouter = Router();
@@ -78,6 +79,8 @@ sharesRouter.post('/api/shares', requireAuth, rateLimiter(20, 60000), (req: Requ
     createdAt: new Date().toISOString(),
     read: false,
   });
+
+  publishCircleEvent(circleId, { notification: notifications[0] });
 
   res.status(201).json(newShare);
 });

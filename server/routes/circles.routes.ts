@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { circles, users, notifications } from '../store/db.js';
 import { getAuthUserId, requireAuth } from '../middleware/auth.middleware.js';
 import { publicUser } from '../utils/publicUser.js';
+import { publishCircleEvent } from '../store/events.js';
 import { rateLimiter } from '../middleware/rateLimiter.js';
 import { sanitizeText } from '../utils/sanitizer.js';
 import { createCircleSchema, joinCircleSchema, Circle } from '../../src/types/index.js';
@@ -103,6 +104,8 @@ circlesRouter.post('/api/circles/join', requireAuth, rateLimiter(10, 600000), (r
     createdAt: new Date().toISOString(),
     read: false,
   });
+
+  publishCircleEvent(circle.id, { notification: notifications[0] });
 
   res.json(circle);
 });
