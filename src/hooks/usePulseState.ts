@@ -65,14 +65,36 @@ export function usePulseState() {
         return;
       }
 
-      const [fetchedShares, fetchedPings, fetchedPins, fetchedNotifs, fetchedCheckIns, fetchedMoments] = await Promise.all([
-        api.getShares(nextCircleId),
-        api.getPings(nextCircleId),
-        api.getMemoryPins(nextCircleId),
-        api.getNotifications(nextCircleId),
-        api.getSafetyCheckIns(nextCircleId),
-        api.getMoments(nextCircleId),
-      ]);
+      let fetchedShares: LocationShare[] = [];
+      let fetchedPings: Ping[] = [];
+      let fetchedPins: MemoryPin[] = [];
+      let fetchedNotifs: NotificationItem[] = [];
+      let fetchedCheckIns: SafetyCheckIn[] = [];
+      let fetchedMoments: PulseMoment[] = [];
+      
+      try {
+        [fetchedShares, fetchedPings, fetchedPins, fetchedNotifs, fetchedCheckIns, fetchedMoments] = await Promise.all([
+          api.getShares(nextCircleId),
+          api.getPings(nextCircleId),
+          api.getMemoryPins(nextCircleId),
+          api.getNotifications(nextCircleId),
+          api.getSafetyCheckIns(nextCircleId),
+          api.getMoments(nextCircleId),
+        ]);
+      } catch (err: any) {
+        if (err.status === 401) {
+          console.error('Authentication error loading data, user may need to re-authenticate');
+          // Set empty arrays to prevent UI crashes
+          fetchedShares = [];
+          fetchedPings = [];
+          fetchedPins = [];
+          fetchedNotifs = [];
+          fetchedCheckIns = [];
+          fetchedMoments = [];
+        } else {
+          throw err;
+        }
+      }
 
       setShares(fetchedShares);
       setPings(fetchedPings);

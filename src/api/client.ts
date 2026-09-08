@@ -32,7 +32,14 @@ export async function apiFetch<T>(
     if (!response.ok) {
       if (isJson) {
         const errorData = await response.json().catch(() => ({ error: 'Request failed' }));
-        throw new ApiError(errorData.error || `HTTP ${response.status}`, response.status);
+        const errorMessage = errorData.error || `HTTP ${response.status}`;
+        
+        // Add extra logging for 401 errors to help debug authentication issues
+        if (response.status === 401) {
+          console.error('Authentication failed:', errorMessage, endpoint);
+        }
+        
+        throw new ApiError(errorMessage, response.status);
       }
 
       throw new ApiError(`Server error HTTP ${response.status}`, response.status);
