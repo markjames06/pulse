@@ -103,20 +103,33 @@ async function redisCommand(command: unknown[]) {
   const config = redisConfig();
   if (!config) return null;
 
-  const response = await fetch(config.url, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${config.token}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(command),
-  });
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
-  if (!response.ok) {
-    throw new Error(`Redis command failed with HTTP ${response.status}`);
+    const response = await fetch(config.url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${config.token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(command),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      throw new Error(`Redis command failed with HTTP ${response.status}`);
+    }
+
+    return response.json() as Promise<{ result: unknown }>;
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error('Redis command timed out');
+    }
+    throw error;
   }
-
-  return response.json() as Promise<{ result: unknown }>;
 }
 
 let hydratePromise: Promise<void> | null = null;

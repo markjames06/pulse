@@ -118,47 +118,51 @@ export function usePulseState() {
     eventSource.onopen = () => setRealtimeStatus('live');
     eventSource.onerror = () => setRealtimeStatus('reconnecting');
     eventSource.onmessage = (message) => {
-      const event = JSON.parse(message.data) as {
-        ping?: Ping;
-        notification?: NotificationItem;
-        share?: LocationShare;
-        checkIn?: SafetyCheckIn;
-        moment?: PulseMoment;
-      };
-      if (event.ping) {
-        setPings((current) => [event.ping!, ...current.filter((ping) => ping.id !== event.ping!.id)]);
-      }
-      if (event.notification) {
-        const notification = event.notification;
-        setNotifications((current) => [notification, ...current.filter((item) => item.id !== notification.id)]);
-        if (!notificationIdsRef.current.has(notification.id)) {
-          notificationIdsRef.current.add(notification.id);
-          if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-            new Notification(notification.title, { body: notification.body, tag: notification.id });
-          }
-          try {
-            const context = new AudioContext();
-            const oscillator = context.createOscillator();
-            const gain = context.createGain();
-            oscillator.frequency.value = 740;
-            gain.gain.setValueAtTime(0.06, context.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.2);
-            oscillator.connect(gain).connect(context.destination);
-            oscillator.start();
-            oscillator.stop(context.currentTime + 0.2);
-          } catch {
-            // Audio can be blocked until the user interacts with the page.
+      try {
+        const event = JSON.parse(message.data) as {
+          ping?: Ping;
+          notification?: NotificationItem;
+          share?: LocationShare;
+          checkIn?: SafetyCheckIn;
+          moment?: PulseMoment;
+        };
+        if (event.ping) {
+          setPings((current) => [event.ping!, ...current.filter((ping) => ping.id !== event.ping!.id)]);
+        }
+        if (event.notification) {
+          const notification = event.notification;
+          setNotifications((current) => [notification, ...current.filter((item) => item.id !== notification.id)]);
+          if (!notificationIdsRef.current.has(notification.id)) {
+            notificationIdsRef.current.add(notification.id);
+            if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+              new Notification(notification.title, { body: notification.body, tag: notification.id });
+            }
+            try {
+              const context = new AudioContext();
+              const oscillator = context.createOscillator();
+              const gain = context.createGain();
+              oscillator.frequency.value = 740;
+              gain.gain.setValueAtTime(0.06, context.currentTime);
+              gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.2);
+              oscillator.connect(gain).connect(context.destination);
+              oscillator.start();
+              oscillator.stop(context.currentTime + 0.2);
+            } catch {
+              // Audio can be blocked until the user interacts with the page.
+            }
           }
         }
-      }
-      if (event.share) {
-        setShares((current) => [event.share!, ...current.filter((share) => share.id !== event.share!.id)]);
-      }
-      if (event.checkIn) {
-        setSafetyCheckIns((current) => [event.checkIn!, ...current.filter((item) => item.id !== event.checkIn!.id)]);
-      }
-      if (event.moment) {
-        setMoments((current) => [event.moment!, ...current.filter((item) => item.id !== event.moment!.id)]);
+        if (event.share) {
+          setShares((current) => [event.share!, ...current.filter((share) => share.id !== event.share!.id)]);
+        }
+        if (event.checkIn) {
+          setSafetyCheckIns((current) => [event.checkIn!, ...current.filter((item) => item.id !== event.checkIn!.id)]);
+        }
+        if (event.moment) {
+          setMoments((current) => [event.moment!, ...current.filter((item) => item.id !== event.moment!.id)]);
+        }
+      } catch (error) {
+        console.error('Failed to parse SSE event:', error);
       }
     };
 
@@ -235,12 +239,15 @@ export function usePulseState() {
     await loadData();
   };
 
-  const handleSendPing = async (message: string, attachLocation: boolean) => {
-    let lat: number | undefined;
-    let lng: number | undefined;
+  const handleSendPing = async (message: string, attachLocation: boolean, lat?: number, lng?: number) => {
+    let latitude: number | undefined;
+    let longitude: number | undefined;
 
     if (attachLocation) {
-      if (navigator.geolocation) {
+      if (lat !== undefined && lng !== undefined) {
+        latitude = lat;
+        longitude = lng;
+      } else if (navigator.geolocation) {
         const position = await new Promise<GeolocationPosition | null>((resolve) => {
           navigator.geolocation.getCurrentPosition(resolve, () => resolve(null), {
             enableHighAccuracy: true,
@@ -248,16 +255,16 @@ export function usePulseState() {
             timeout: 10000,
           });
         });
-        lat = position?.coords.latitude;
-        lng = position?.coords.longitude;
+        latitude = position?.coords.latitude;
+        longitude = position?.coords.longitude;
       }
     }
 
     await api.sendPing({
       circleId: activeCircleId,
       message,
-      latitude: lat,
-      longitude: lng,
+      latitude,
+      longitude,
     });
     await loadData();
   };

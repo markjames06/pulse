@@ -108,6 +108,7 @@ export default function App() {
     isMemoryPinModalOpen,
     setIsMemoryPinModalOpen,
     memoryPinCoords,
+    setMemoryPinCoords,
     openMemoryPinModal,
     isNotificationsOpen,
     setIsNotificationsOpen,
@@ -117,10 +118,40 @@ export default function App() {
     setIsRegisterModalOpen,
   } = useModalState();
 
+  const [isLocationSelectionMode, setIsLocationSelectionMode] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [pendingModal, setPendingModal] = useState<'share' | 'ping' | 'pin' | null>(null);
+
   const handleRegisterSuccess = async (newUser: UserProfile) => {
     await onRegisterSuccess(newUser);
     setActiveTab('map');
     setIsRegisterModalOpen(false);
+  };
+
+  const handleEnterMapSelectionMode = (modalType: 'share' | 'ping' | 'pin') => {
+    setPendingModal(modalType);
+    setIsLocationSelectionMode(true);
+    setActiveTab('map');
+  };
+
+  const handleLocationSelect = (lat: number, lng: number) => {
+    setSelectedLocation({ lat, lng });
+    setIsLocationSelectionMode(false);
+    
+    // Reopen the appropriate modal with the selected location
+    if (pendingModal === 'share') {
+      setIsShareModalOpen(true);
+    } else if (pendingModal === 'ping') {
+      setIsPingModalOpen(true);
+    }
+    
+    setPendingModal(null);
+  };
+
+  const handleCancelLocationSelect = () => {
+    setIsLocationSelectionMode(false);
+    setSelectedLocation(null);
+    setPendingModal(null);
   };
 
   if (isBooting) {
@@ -215,6 +246,9 @@ export default function App() {
             onOpenShareModal={() => setIsShareModalOpen(true)}
             onOpenPingModal={() => setIsPingModalOpen(true)}
             onOpenMemoryPinModal={openMemoryPinModal}
+            isLocationSelectionMode={isLocationSelectionMode}
+            onLocationSelect={handleLocationSelect}
+            onCancelLocationSelect={handleCancelLocationSelect}
           />
         )}
 
@@ -264,23 +298,43 @@ export default function App() {
 
       <ShareLocationModal
         isOpen={isShareModalOpen}
-        onClose={() => setIsShareModalOpen(false)}
+        onClose={() => {
+          setIsShareModalOpen(false);
+          setSelectedLocation(null);
+        }}
         circleId={activeCircleId}
         circleName={activeCircle?.name || 'Your Circle'}
-        onStartShare={handleStartShare}
+        onStartShare={async (durationMinutes, label, lat, lng) => {
+          const finalLat = lat ?? selectedLocation?.lat;
+          const finalLng = lng ?? selectedLocation?.lng;
+          await handleStartShare(durationMinutes, label, finalLat, finalLng);
+        }}
+        onEnterMapSelectionMode={() => handleEnterMapSelectionMode('share')}
       />
 
       <SendPingModal
         isOpen={isPingModalOpen}
-        onClose={() => setIsPingModalOpen(false)}
+        onClose={() => {
+          setIsPingModalOpen(false);
+          setSelectedLocation(null);
+        }}
         circleId={activeCircleId}
         circleName={activeCircle?.name || 'Your Circle'}
-        onSendPing={handleSendPing}
+        onSendPing={async (message, attachLocation, lat, lng) => {
+          const finalLat = lat ?? selectedLocation?.lat;
+          const finalLng = lng ?? selectedLocation?.lng;
+          await handleSendPing(message, attachLocation, finalLat, finalLng);
+        }}
+        onEnterMapSelectionMode={() => handleEnterMapSelectionMode('ping')}
       />
 
       <MemoryPinsModal
         isOpen={isMemoryPinModalOpen}
-        onClose={() => setIsMemoryPinModalOpen(false)}
+        onClose={() => {
+          setIsMemoryPinModalOpen(false);
+          setSelectedLocation(null);
+          setMemoryPinCoords({ lat: undefined, lng: undefined });
+        }}
         circleId={activeCircleId}
         circleName={activeCircle?.name || 'Your Circle'}
         initialLat={memoryPinCoords.lat}

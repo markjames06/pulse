@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Clock, Radio, Shield, MapPin } from 'lucide-react';
+import { X, Clock, Radio, Shield, MapPin, Crosshair } from 'lucide-react';
 
 interface ShareLocationModalProps {
   isOpen: boolean;
@@ -12,17 +12,32 @@ interface ShareLocationModalProps {
     lat?: number,
     lng?: number
   ) => Promise<void>;
+  onEnterMapSelectionMode: () => void;
 }
+
+type LocationMode = 'current' | 'custom';
 
 export const ShareLocationModal: React.FC<ShareLocationModalProps> = ({
   isOpen,
   onClose,
   circleName,
   onStartShare,
+  onEnterMapSelectionMode,
 }) => {
   const [durationMinutes, setDurationMinutes] = useState<number>(60);
   const [label, setLabel] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [locationMode, setLocationMode] = useState<LocationMode>('current');
+  const [customLat, setCustomLat] = useState<number | undefined>();
+  const [customLng, setCustomLng] = useState<number | undefined>();
+
+  // Reset custom location when modal opens
+  React.useEffect(() => {
+    if (isOpen) {
+      setCustomLat(undefined);
+      setCustomLng(undefined);
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -35,27 +50,37 @@ export const ShareLocationModal: React.FC<ShareLocationModalProps> = ({
     setIsSubmitting(true);
 
     try {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          async (pos) => {
-            await onStartShare(
-              durationMinutes,
-              label.trim() || undefined,
-              pos.coords.latitude,
-              pos.coords.longitude
-            );
-            setIsSubmitting(false);
-            onClose();
-          },
-          async () => {
-            await onStartShare(durationMinutes, label.trim() || undefined);
-            setIsSubmitting(false);
-            onClose();
-          },
-          { timeout: 5000 }
-        );
+      if (locationMode === 'current') {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            async (pos) => {
+              await onStartShare(
+                durationMinutes,
+                label.trim() || undefined,
+                pos.coords.latitude,
+                pos.coords.longitude
+              );
+              setIsSubmitting(false);
+              onClose();
+            },
+            async () => {
+              await onStartShare(durationMinutes, label.trim() || undefined);
+              setIsSubmitting(false);
+              onClose();
+            },
+            { timeout: 5000 }
+          );
+        } else {
+          await onStartShare(durationMinutes, label.trim() || undefined);
+          setIsSubmitting(false);
+          onClose();
+        }
       } else {
-        await onStartShare(durationMinutes, label.trim() || undefined);
+        if (customLat !== undefined && customLng !== undefined) {
+          await onStartShare(durationMinutes, label.trim() || undefined, customLat, customLng);
+        } else {
+          await onStartShare(durationMinutes, label.trim() || undefined);
+        }
         setIsSubmitting(false);
         onClose();
       }
@@ -121,6 +146,67 @@ export const ShareLocationModal: React.FC<ShareLocationModalProps> = ({
               ))}
             </div>
           </div>
+
+          {/* Location Mode Selection */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-300 mb-2 flex items-center gap-1.5">
+              <MapPin className="w-3.5 h-3.5 text-indigo-400" />
+              <span>Location Source</span>
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setLocationMode('current')}
+                className={`py-2.5 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2 ${
+                  locationMode === 'current'
+                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 ring-2 ring-indigo-400/50'
+                    : 'bg-slate-800/80 text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+                }`}
+              >
+                <Crosshair className="w-4 h-4" />
+                <span>Current GPS</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setLocationMode('custom')}
+                className={`py-2.5 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2 ${
+                  locationMode === 'custom'
+                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 ring-2 ring-indigo-400/50'
+                    : 'bg-slate-800/80 text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+                }`}
+              >
+                <MapPin className="w-4 h-4" />
+                <span>Custom Location</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Custom Location Info */}
+          {locationMode === 'custom' && (
+            <div className="p-3 rounded-2xl bg-slate-800/60 border border-white/5 flex items-center gap-2 text-xs text-slate-400">
+              <MapPin className="w-4 h-4 text-indigo-400 shrink-0" />
+              <span>
+                {customLat !== undefined && customLng !== undefined
+                  ? `Selected: ${customLat.toFixed(4)}, ${customLng.toFixed(4)}`
+                  : 'Click "Select on Map" to choose location'}
+              </span>
+            </div>
+          )}
+
+          {/* Map Selection Button */}
+          {locationMode === 'custom' && (
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onEnterMapSelectionMode();
+              }}
+              className="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-indigo-400 text-xs font-semibold border border-indigo-500/30 transition-all flex items-center justify-center gap-2"
+            >
+              <MapPin className="w-4 h-4" />
+              <span>Select on Map</span>
+            </button>
+          )}
 
           {/* Custom Label */}
           <div>

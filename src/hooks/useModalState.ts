@@ -22,6 +22,7 @@ export function useModalState() {
     isMemoryPinModalOpen,
     setIsMemoryPinModalOpen,
     memoryPinCoords,
+    setMemoryPinCoords,
     openMemoryPinModal,
     isNotificationsOpen,
     setIsNotificationsOpen,

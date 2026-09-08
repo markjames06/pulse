@@ -19,27 +19,40 @@ export async function apiFetch<T>(
     headers.set('Content-Type', 'application/json');
   }
 
-  const response = await fetch(endpoint, {
-    ...options,
-    credentials: 'include',
-    headers,
-  });
+  try {
+    const response = await fetch(endpoint, {
+      ...options,
+      credentials: 'include',
+      headers,
+    });
 
-  const contentType = response.headers.get('content-type');
-  const isJson = Boolean(contentType && contentType.includes('application/json'));
+    const contentType = response.headers.get('content-type');
+    const isJson = Boolean(contentType && contentType.includes('application/json'));
 
-  if (!response.ok) {
-    if (isJson) {
-      const errorData = await response.json().catch(() => ({ error: 'Request failed' }));
-      throw new ApiError(errorData.error || `HTTP ${response.status}`, response.status);
+    if (!response.ok) {
+      if (isJson) {
+        const errorData = await response.json().catch(() => ({ error: 'Request failed' }));
+        throw new ApiError(errorData.error || `HTTP ${response.status}`, response.status);
+      }
+
+      throw new ApiError(`Server error HTTP ${response.status}`, response.status);
     }
 
-    throw new ApiError(`Server error HTTP ${response.status}`, response.status);
-  }
+    if (!isJson) {
+      throw new Error(`API ${endpoint} returned an unexpected response.`);
+    }
 
-  if (!isJson) {
-    throw new Error(`API ${endpoint} returned an unexpected response.`);
+    return response.json() as Promise<T>;
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    
+    // Handle network errors, timeouts, etc.
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      throw new ApiError('Network error. Please check your connection.', 0);
+    }
+    
+    throw new ApiError('An unexpected error occurred. Please try again.', 500);
   }
-
-  return response.json() as Promise<T>;
 }

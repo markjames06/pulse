@@ -22,6 +22,9 @@ export interface MapViewProps {
   onOpenPingModal: () => void;
   onOpenMemoryPinModal: (lat?: number, lng?: number) => void;
   onSelectMemoryPin?: (pin: MemoryPin) => void;
+  isLocationSelectionMode: boolean;
+  onLocationSelect: (lat: number, lng: number) => void;
+  onCancelLocationSelect: () => void;
 }
 
 export const MapView: React.FC<MapViewProps> = ({
@@ -32,11 +35,15 @@ export const MapView: React.FC<MapViewProps> = ({
   onOpenShareModal,
   onOpenPingModal,
   onOpenMemoryPinModal,
+  isLocationSelectionMode,
+  onLocationSelect,
+  onCancelLocationSelect,
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markersGroupRef = useRef<L.LayerGroup | null>(null);
   const userGpsMarkerRef = useRef<L.Marker | null>(null);
+  const locationSelectionMarkerRef = useRef<L.Marker | null>(null);
   const hasFittedInitialMarkersRef = useRef(false);
 
   const [tileMode, setTileMode] = useState<'auto' | 'street' | 'satellite'>('auto');
@@ -68,6 +75,10 @@ export const MapView: React.FC<MapViewProps> = ({
 
         if (userGpsMarkerRef.current) {
           userGpsMarkerRef.current.setLatLng([lat, lng]);
+          // Ensure the marker is still in the layer group
+          if (markersGroupRef.current && !markersGroupRef.current.hasLayer(userGpsMarkerRef.current)) {
+            markersGroupRef.current.addLayer(userGpsMarkerRef.current);
+          }
         } else {
           const gpsMarker = L.marker([lat, lng], { icon: createDeviceGpsIcon() });
           gpsMarker.bindPopup(
@@ -105,9 +116,17 @@ export const MapView: React.FC<MapViewProps> = ({
     // Detect user position once on mount
     handleLocateUser();
 
-    // Map click -> add pin modal
+    // Map click -> add pin modal or location selection
     map.on('click', (e: L.LeafletMouseEvent) => {
-      onOpenMemoryPinModal(e.latlng.lat, e.latlng.lng);
+      if (isLocationSelectionMode) {
+        // Update selection marker position
+        if (locationSelectionMarkerRef.current) {
+          locationSelectionMarkerRef.current.setLatLng(e.latlng);
+        }
+        onLocationSelect(e.latlng.lat, e.latlng.lng);
+      } else {
+        onOpenMemoryPinModal(e.latlng.lat, e.latlng.lng);
+      }
     });
 
     return () => {
@@ -128,13 +147,58 @@ export const MapView: React.FC<MapViewProps> = ({
     applyMapTiles(mapInstanceRef.current, tileMode);
   }, [tileMode]);
 
-  // 3. Render Markers when data or visibility changes
+  // 3. Handle Location Selection Mode
   useEffect(() => {
     if (!mapInstanceRef.current || !markersGroupRef.current) return;
 
     const layerGroup = markersGroupRef.current;
+
+    // Add/remove selection indicator based on mode
+    if (isLocationSelectionMode) {
+      if (locationSelectionMarkerRef.current) {
+        layerGroup.removeLayer(locationSelectionMarkerRef.current);
+      }
+
+      const selectionMarker = L.marker(mapInstanceRef.current.getCenter(), {
+        icon: L.divIcon({
+          className: 'location-selection-marker',
+          html: `<div style="background: #f59e0b; width: 24px; height: 24px; border-radius: 50%; border: 4px solid white; box-shadow: 0 4px 12px rgba(0,0,0,0.4); animation: pulse 1.5s infinite;"></div>`,
+          iconSize: [24, 24],
+          iconAnchor: [12, 12],
+        }),
+      });
+      selectionMarker.addTo(layerGroup);
+      locationSelectionMarkerRef.current = selectionMarker;
+    } else {
+      if (locationSelectionMarkerRef.current) {
+        layerGroup.removeLayer(locationSelectionMarkerRef.current);
+        locationSelectionMarkerRef.current = null;
+      }
+    }
+
+    return () => {
+      if (locationSelectionMarkerRef.current) {
+        layerGroup.removeLayer(locationSelectionMarkerRef.current);
+        locationSelectionMarkerRef.current = null;
+      }
+    };
+  }, [isLocationSelectionMode]);
+
+  // 4. Render Markers when data or visibility changes
+  useEffect(() => {
+    if (!mapInstanceRef.current || !markersGroupRef.current) return;
+
+    const layerGroup = markersGroupRef.current;
+    
+    // Store the user GPS marker before clearing layers
+    const existingUserGpsMarker = userGpsMarkerRef.current;
     layerGroup.clearLayers();
-    userGpsMarkerRef.current = null;
+    
+    // Restore the user GPS marker if it exists
+    if (existingUserGpsMarker) {
+      layerGroup.addLayer(existingUserGpsMarker);
+      userGpsMarkerRef.current = existingUserGpsMarker;
+    }
 
     const bounds: L.LatLngBounds = L.latLngBounds([]);
     let hasCoords = false;
@@ -251,22 +315,43 @@ export const MapView: React.FC<MapViewProps> = ({
       {/* Map Element Container */}
       <div ref={mapContainerRef} className="w-full h-full z-0" />
 
+      {/* Location Selection Mode Banner */}
+      {isLocationSelectionMode && (
+        <div className="absolute top-4 left-4 right-4 z-[1100] flex items-center justify-between bg-amber-500/95 backdrop-blur-md border border-white/20 rounded-2xl px-4 py-3 shadow-2xl">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-white rounded-full animate-pulse" />
+            <p className="text-xs font-semibold text-white">Tap anywhere on the map to select location</p>
+          </div>
+          <button
+            type="button"
+            onClick={onCancelLocationSelect}
+            className="px-3 py-1.5 rounded-xl bg-white/20 hover:bg-white/30 text-white text-xs font-semibold transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      )}
+
       {/* Map Controls */}
-      <MapControls
-        tileMode={tileMode}
-        onToggleTileMode={() => setTileMode((prev) => prev === 'auto' ? 'street' : prev === 'street' ? 'satellite' : 'auto')}
-        onLocateUser={handleLocateUser}
-        markerVisibility={markerVisibility}
-        onToggleVisibility={handleToggleVisibility}
-        counts={counts}
-      />
+      {!isLocationSelectionMode && (
+        <MapControls
+          tileMode={tileMode}
+          onToggleTileMode={() => setTileMode((prev) => prev === 'auto' ? 'street' : prev === 'street' ? 'satellite' : 'auto')}
+          onLocateUser={handleLocateUser}
+          markerVisibility={markerVisibility}
+          onToggleVisibility={handleToggleVisibility}
+          counts={counts}
+        />
+      )}
 
       {/* Quick Action Overlay */}
-      <MapOverlayActions
-        onOpenShareModal={onOpenShareModal}
-        onOpenPingModal={onOpenPingModal}
-        onOpenMemoryPinModal={() => onOpenMemoryPinModal()}
-      />
+      {!isLocationSelectionMode && (
+        <MapOverlayActions
+          onOpenShareModal={onOpenShareModal}
+          onOpenPingModal={onOpenPingModal}
+          onOpenMemoryPinModal={() => onOpenMemoryPinModal()}
+        />
+      )}
     </div>
   );
 };

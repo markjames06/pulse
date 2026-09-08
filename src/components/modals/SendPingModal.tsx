@@ -1,23 +1,37 @@
 import React, { useState } from 'react';
-import { X, Zap, Send, MapPin } from 'lucide-react';
+import { X, Zap, Send, MapPin, Crosshair } from 'lucide-react';
 
 interface SendPingModalProps {
   isOpen: boolean;
   onClose: () => void;
   circleId: string;
   circleName: string;
-  onSendPing: (message: string, attachLocation: boolean) => Promise<void>;
+  onSendPing: (message: string, attachLocation: boolean, lat?: number, lng?: number) => Promise<void>;
+  onEnterMapSelectionMode: () => void;
 }
+
+type LocationMode = 'current' | 'custom';
 
 export const SendPingModal: React.FC<SendPingModalProps> = ({
   isOpen,
   onClose,
   circleName,
   onSendPing,
+  onEnterMapSelectionMode,
 }) => {
   const [message, setMessage] = useState<string>('');
-  const [attachLocation, setAttachLocation] = useState<boolean>(true);
+  const [locationMode, setLocationMode] = useState<LocationMode>('current');
+  const [customLat, setCustomLat] = useState<number | undefined>();
+  const [customLng, setCustomLng] = useState<number | undefined>();
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+
+  // Reset custom location when modal opens
+  React.useEffect(() => {
+    if (isOpen) {
+      setCustomLat(undefined);
+      setCustomLng(undefined);
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -34,7 +48,34 @@ export const SendPingModal: React.FC<SendPingModalProps> = ({
 
     setIsSubmitting(true);
     try {
-      await onSendPing(message.trim(), attachLocation);
+      let lat: number | undefined;
+      let lng: number | undefined;
+
+      if (locationMode === 'current') {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            async (pos) => {
+              await onSendPing(message.trim(), true, pos.coords.latitude, pos.coords.longitude);
+              setMessage('');
+              setIsSubmitting(false);
+              onClose();
+            },
+            async () => {
+              await onSendPing(message.trim(), false);
+              setMessage('');
+              setIsSubmitting(false);
+              onClose();
+            },
+            { timeout: 5000 }
+          );
+          return;
+        }
+      } else if (locationMode === 'custom') {
+        lat = customLat;
+        lng = customLng;
+      }
+
+      await onSendPing(message.trim(), locationMode === 'custom' ? (lat !== undefined && lng !== undefined) : true, lat, lng);
       setMessage('');
       setIsSubmitting(false);
       onClose();
@@ -106,20 +147,65 @@ export const SendPingModal: React.FC<SendPingModalProps> = ({
             />
           </div>
 
-          {/* Attach Location Toggle */}
-          <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-800/60 border border-white/5">
-            <div className="flex items-center gap-2 text-xs font-medium text-slate-200">
-              <MapPin className="w-4 h-4 text-rose-400" />
-              <span>Attach current GPS position</span>
+          {/* Location Mode Selection */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-300 mb-2">
+              Location Attachment
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setLocationMode('current')}
+                className={`py-2.5 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2 ${
+                  locationMode === 'current'
+                    ? 'bg-rose-600 text-white shadow-lg shadow-rose-600/30 ring-2 ring-rose-400/50'
+                    : 'bg-slate-800/80 text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+                }`}
+              >
+                <Crosshair className="w-4 h-4" />
+                <span>Current GPS</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setLocationMode('custom')}
+                className={`py-2.5 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2 ${
+                  locationMode === 'custom'
+                    ? 'bg-rose-600 text-white shadow-lg shadow-rose-600/30 ring-2 ring-rose-400/50'
+                    : 'bg-slate-800/80 text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+                }`}
+              >
+                <MapPin className="w-4 h-4" />
+                <span>Custom Location</span>
+              </button>
             </div>
-
-            <input
-              type="checkbox"
-              checked={attachLocation}
-              onChange={(e) => setAttachLocation(e.target.checked)}
-              className="w-4 h-4 rounded text-rose-600 focus:ring-rose-500 bg-slate-900 border-white/10"
-            />
           </div>
+
+          {/* Custom Location Info */}
+          {locationMode === 'custom' && (
+            <div className="p-3 rounded-2xl bg-slate-800/60 border border-white/5 flex items-center gap-2 text-xs text-slate-400">
+              <MapPin className="w-4 h-4 text-rose-400 shrink-0" />
+              <span>
+                {customLat !== undefined && customLng !== undefined
+                  ? `Selected: ${customLat.toFixed(4)}, ${customLng.toFixed(4)}`
+                  : 'Click "Select on Map" to choose location'}
+              </span>
+            </div>
+          )}
+
+          {/* Map Selection Button */}
+          {locationMode === 'custom' && (
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onEnterMapSelectionMode();
+              }}
+              className="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-rose-400 text-xs font-semibold border border-rose-500/30 transition-all flex items-center justify-center gap-2"
+            >
+              <MapPin className="w-4 h-4" />
+              <span>Select on Map</span>
+            </button>
+          )}
 
           {/* Action Buttons */}
           <div className="flex items-center gap-3 pt-2">

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Bookmark, MapPin } from 'lucide-react';
+import { X, Bookmark, MapPin, Crosshair } from 'lucide-react';
 import { getMemoryPinIconSvg } from '../map/mapUtils';
 
 interface MemoryPinsModalProps {
@@ -122,8 +122,8 @@ export const MemoryPinsModal: React.FC<MemoryPinsModalProps> = ({
             <MapPin className="w-4 h-4 text-amber-400 shrink-0" />
             <span>
               {initialLat !== undefined && initialLng !== undefined
-                ? 'Saved exactly where you tapped on the map'
-                : 'Saved at the center of the map'}
+                ? `Location: ${initialLat.toFixed(4)}, ${initialLng.toFixed(4)}`
+                : 'Default location (center of map)'}
             </span>
           </div>
 
