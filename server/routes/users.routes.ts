@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
-import { users, circles, locationShares, pings, memoryPins, notifications } from '../store/db.js';
+import { users, circles, locationShares, pings, memoryPins, notifications, deletedEmails } from '../store/db.js';
 import { getAuthUserId, requireAuth } from '../middleware/auth.middleware.js';
 import { rateLimiter } from '../middleware/rateLimiter.js';
 import { sanitizeText } from '../utils/sanitizer.js';
@@ -82,14 +82,23 @@ usersRouter.post(
   async (req: Request, res: Response) => {
     const parsed = registerSchema.safeParse(req.body);
     if (!parsed.success) {
+      console.log('Registration validation failed:', parsed.error.issues[0].message);
       return res.status(400).json({ error: parsed.error.issues[0].message });
     }
 
     const email = parsed.data.email.toLowerCase();
+    console.log('Registration attempt for email:', email);
+    console.log('Current users in store:', users.size);
+    
     const existingUser = Array.from(users.values()).find((user) => user.email === email);
     if (existingUser) {
+      console.log('Registration failed: Email already exists:', email);
       return res.status(409).json({ error: 'An account with this email already exists' });
     }
+
+    // Check if this email was previously deleted
+    const wasPreviouslyDeleted = deletedEmails.has(email);
+    console.log('Email was previously deleted:', wasPreviouslyDeleted);
 
     const newId = `usr_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
     const newUser: UserProfile = {
@@ -101,12 +110,24 @@ usersRouter.post(
       passwordHash: await hashPassword(parsed.data.password),
     };
 
+    console.log('Creating new user:', newId);
     users.set(newId, newUser);
     createPersonalCircle(newUser);
+    
+    // Remove from deleted emails set since they're re-registering
+    if (wasPreviouslyDeleted) {
+      deletedEmails.delete(email);
+      console.log('Removed email from deleted emails set:', email);
+    }
+    
     await persistStore();
     setSessionCookie(res, newId);
 
-    res.status(201).json(publicUser(newUser));
+    console.log('Registration successful for user:', newId);
+    res.status(201).json({
+      ...publicUser(newUser),
+      showTutorial: wasPreviouslyDeleted,
+    });
   }
 );
 
@@ -116,17 +137,30 @@ usersRouter.post(
   async (req: Request, res: Response) => {
     const parsed = loginSchema.safeParse(req.body);
     if (!parsed.success) {
+      console.log('Login validation failed:', parsed.error.issues[0].message);
       return res.status(400).json({ error: parsed.error.issues[0].message });
     }
 
     const email = parsed.data.email.toLowerCase();
+    console.log('Login attempt for email:', email);
+    console.log('Current users in store:', users.size);
+    
     const existingUser = Array.from(users.values()).find((user) => user.email === email);
+    
+    if (!existingUser) {
+      console.log('Login failed: User not found for email:', email);
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+    
+    console.log('User found:', existingUser.id, 'checking password...');
     const passwordOk = await verifyPassword(parsed.data.password, existingUser?.passwordHash);
-
-    if (!existingUser || !passwordOk) {
+    
+    if (!passwordOk) {
+      console.log('Login failed: Invalid password for user:', existingUser.id);
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
+    console.log('Login successful for user:', existingUser.id);
     setSessionCookie(res, existingUser.id);
     res.json(publicUser(existingUser));
   }
@@ -194,6 +228,13 @@ usersRouter.put('/api/auth/me', requireAuth, (req: Request, res: Response) => {
 
 usersRouter.delete('/api/user/account', requireAuth, (req: Request, res: Response) => {
   const userId = getAuthUserId(req);
+  const user = users.get(userId);
+  
+  if (user) {
+    // Add email to deleted emails set for tutorial tracking
+    deletedEmails.add(user.email);
+    console.log('Added email to deleted emails set:', user.email);
+  }
 
   for (const [id, share] of locationShares.entries()) {
     if (share.userId === userId) locationShares.delete(id);

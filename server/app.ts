@@ -26,6 +26,21 @@ const __dirname = path.dirname(__filename);
 const isVercel = Boolean(process.env.VERCEL);
 const isProduction = process.env.NODE_ENV === 'production';
 
+// Validate critical environment variables
+if (isProduction) {
+  if (!process.env.SESSION_SECRET) {
+    console.error('CRITICAL: SESSION_SECRET environment variable is not set in production.');
+    console.error('Please set SESSION_SECRET to a random string with at least 32 characters.');
+    console.error('Authentication will not work reliably without this.');
+  }
+  
+  if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
+    console.warn('WARNING: UPSTASH_REDIS_REST_URL or UPSTASH_REDIS_REST_TOKEN not set.');
+    console.warn('The app will fall back to local file storage, which may not work properly on Vercel.');
+    console.warn('Please configure Upstash Redis for production deployment.');
+  }
+}
+
 app.disable('x-powered-by');
 app.set('trust proxy', 1);
 app.use(securityHeaders);

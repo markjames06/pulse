@@ -7,9 +7,4 @@ coverage/
 .env*
 !.env.example
 data/
-
 .vercel
-.env*
-
-.vercel
-.env*

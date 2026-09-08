@@ -9,6 +9,7 @@ import {
   moments,
   pushSubscriptions,
   upgradeInterests,
+  deletedEmails,
   PushSubscriptionRecord,
 } from './db.js';
 import {
@@ -39,6 +40,7 @@ type StoreSnapshot = {
   moments: PulseMoment[];
   pushSubscriptions: PushSubscriptionRecord[];
   upgradeInterests: UpgradeInterest[];
+  deletedEmails: string[];
 };
 
 function redisConfig() {
@@ -72,6 +74,7 @@ function takeSnapshot(): StoreSnapshot {
     moments: [...moments],
     pushSubscriptions: [...pushSubscriptions],
     upgradeInterests: [...upgradeInterests],
+    deletedEmails: Array.from(deletedEmails),
   };
 }
 
@@ -86,6 +89,7 @@ function restoreSnapshot(snapshot: StoreSnapshot) {
   moments.length = 0;
   pushSubscriptions.length = 0;
   upgradeInterests.length = 0;
+  deletedEmails.clear();
 
   for (const user of snapshot.users || []) users.set(user.id, user);
   for (const circle of snapshot.circles || []) circles.set(circle.id, circle);
@@ -97,6 +101,7 @@ function restoreSnapshot(snapshot: StoreSnapshot) {
   moments.push(...(snapshot.moments || []));
   pushSubscriptions.push(...(snapshot.pushSubscriptions || []));
   upgradeInterests.push(...(snapshot.upgradeInterests || []));
+  for (const email of snapshot.deletedEmails || []) deletedEmails.add(email);
 }
 
 async function redisCommand(command: unknown[]) {
@@ -139,23 +144,42 @@ export async function hydrateStore() {
   if (hydratePromise) return hydratePromise;
 
   hydratePromise = (async () => {
-    if (!redisConfig()) {
+    const config = redisConfig();
+    if (!config) {
+      console.log('Using local file storage for Pulse data');
       const snapshot = await readLocalSnapshot();
-      if (snapshot) restoreSnapshot(snapshot);
+      if (snapshot) {
+        console.log('Restored snapshot from local file');
+        restoreSnapshot(snapshot);
+      } else {
+        console.log('No local snapshot found, starting with empty store');
+      }
       return;
     }
 
     try {
+      console.log('Attempting to hydrate from Redis...');
       const payload = await redisCommand(['GET', STORE_KEY]);
       const raw = payload?.result;
 
       if (typeof raw === 'string' && raw.trim()) {
         restoreSnapshot(JSON.parse(raw) as StoreSnapshot);
+        console.log('Successfully restored snapshot from Redis');
         return;
+      } else {
+        console.log('No data found in Redis, starting with empty store');
       }
     } catch (error) {
       console.error('Failed to hydrate Pulse store from Redis:', error);
+      console.error('Falling back to local file storage');
       hydratePromise = null;
+      
+      // Fallback to local storage
+      const snapshot = await readLocalSnapshot();
+      if (snapshot) {
+        console.log('Restored snapshot from local file as fallback');
+        restoreSnapshot(snapshot);
+      }
     }
   })();
 
@@ -163,11 +187,13 @@ export async function hydrateStore() {
 }
 
 export async function persistStore() {
-  if (!redisConfig()) {
+  const config = redisConfig();
+  if (!config) {
     persistQueue = persistQueue.then(async () => {
       try {
         await mkdir(path.dirname(LOCAL_STORE_PATH), { recursive: true });
         await writeFile(LOCAL_STORE_PATH, JSON.stringify(takeSnapshot()), 'utf8');
+        console.log('Successfully persisted store to local file');
       } catch (error) {
         console.error('Failed to persist local Pulse store:', error);
       }
@@ -178,7 +204,18 @@ export async function persistStore() {
 
   try {
     await redisCommand(['SET', STORE_KEY, JSON.stringify(takeSnapshot())]);
+    console.log('Successfully persisted store to Redis');
   } catch (error) {
     console.error('Failed to persist Pulse store to Redis:', error);
+    console.error('Attempting fallback to local file storage');
+    
+    // Fallback to local storage
+    try {
+      await mkdir(path.dirname(LOCAL_STORE_PATH), { recursive: true });
+      await writeFile(LOCAL_STORE_PATH, JSON.stringify(takeSnapshot()), 'utf8');
+      console.log('Successfully persisted store to local file as fallback');
+    } catch (localError) {
+      console.error('Failed to persist to local file as well:', localError);
+    }
   }
 }

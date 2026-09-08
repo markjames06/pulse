@@ -28,6 +28,7 @@ type PulseMemoryStore = {
   moments: PulseMoment[];
   pushSubscriptions: PushSubscriptionRecord[];
   upgradeInterests: UpgradeInterest[];
+  deletedEmails: Set<string>;
 };
 
 const globalStore = globalThis as typeof globalThis & {
@@ -46,6 +47,7 @@ if (!globalStore.__pulseStore) {
     moments: [],
     pushSubscriptions: [],
     upgradeInterests: [],
+    deletedEmails: new Set(),
   };
 }
 
@@ -59,6 +61,7 @@ export const safetyCheckIns = globalStore.__pulseStore.safetyCheckIns;
 export const moments = globalStore.__pulseStore.moments;
 export const pushSubscriptions = globalStore.__pulseStore.pushSubscriptions;
 export const upgradeInterests = globalStore.__pulseStore.upgradeInterests;
+export const deletedEmails = globalStore.__pulseStore.deletedEmails;
 
 export function seedData() {
   users.clear();
@@ -71,4 +74,5 @@ export function seedData() {
   pushSubscriptions.length = 0;
   upgradeInterests.length = 0;
   circles.clear();
+  deletedEmails.clear();
 }

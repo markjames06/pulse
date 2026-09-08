@@ -3,12 +3,20 @@ import { users } from '../store/db.js';
 import { getTokenFromRequest, readSessionUserId, clearSessionCookie } from './session.js';
 
 export function getAuthUserId(req: Request): string {
-  const userId = readSessionUserId(getTokenFromRequest(req));
+  const token = getTokenFromRequest(req);
+  const userId = readSessionUserId(token);
 
-  if (!userId || !users.has(userId)) {
+  if (!userId) {
+    console.log('Authentication failed: No valid user ID from token');
     return '';
   }
 
+  if (!users.has(userId)) {
+    console.log('Authentication failed: User not found in store:', userId);
+    return '';
+  }
+
+  console.log('Authentication successful for user:', userId);
   return userId;
 }
 

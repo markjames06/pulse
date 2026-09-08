@@ -32,6 +32,7 @@ export default function App() {
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [installPrompt, setInstallPrompt] = useState<InstallPromptEvent | null>(null);
   const [showTutorial, setShowTutorial] = useState(() => localStorage.getItem('pulse:tutorial-complete') !== 'true');
+  const [isReRegistration, setIsReRegistration] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [showSplash, setShowSplash] = useState(true);
 
@@ -126,6 +127,15 @@ export default function App() {
     await onRegisterSuccess(newUser);
     setActiveTab('map');
     setIsRegisterModalOpen(false);
+    
+    // Always show tutorial for re-registrations, otherwise check localStorage
+    if (newUser.showTutorial) {
+      setIsReRegistration(true);
+      setShowTutorial(true);
+    } else if (localStorage.getItem('pulse:tutorial-complete') !== 'true') {
+      setIsReRegistration(false);
+      setShowTutorial(true);
+    }
   };
 
   const handleEnterMapSelectionMode = (modalType: 'share' | 'ping' | 'pin') => {
@@ -178,6 +188,15 @@ export default function App() {
           onRegisterSuccess={async (user) => {
             await onRegisterSuccess(user);
             setIsAuthOpen(false);
+            
+            // Always show tutorial for re-registrations, otherwise check localStorage
+            if (user.showTutorial) {
+              setIsReRegistration(true);
+              setShowTutorial(true);
+            } else if (localStorage.getItem('pulse:tutorial-complete') !== 'true') {
+              setIsReRegistration(false);
+              setShowTutorial(true);
+            }
           }}
           initialMode={authMode}
         />
@@ -230,7 +249,7 @@ export default function App() {
         />
       )}
 
-      {showTutorial && <OnboardingTutorial onFinish={finishTutorial} />}
+      {showTutorial && <OnboardingTutorial onFinish={finishTutorial} isReRegistration={isReRegistration} />}
 
       <main
         className={`pulse-page flex-1 relative overflow-x-hidden ${isSidebarOpen ? 'sidebar-open' : 'sidebar-closed'} ${

@@ -8,10 +8,20 @@ function sessionSecret() {
   const secret = process.env.SESSION_SECRET;
   const isProduction = process.env.NODE_ENV === 'production' || Boolean(process.env.VERCEL);
 
-  if (secret) return secret;
-  if (!isProduction) return 'pulse-dev-session-secret';
+  if (secret) {
+    if (secret.length < 32) {
+      console.warn('WARNING: SESSION_SECRET is too short. Should be at least 32 characters for security.');
+    }
+    return secret;
+  }
+  
+  if (!isProduction) {
+    return 'pulse-dev-session-secret';
+  }
 
-  // Production fallback - use a fixed secret for consistency
+  // Production - this is a critical error
+  console.error('CRITICAL: SESSION_SECRET environment variable is not set in production. Authentication will not work reliably.');
+  // Fallback for now, but this should be configured
   return 'pulse-production-fixed-secret-fallback-please-configure-env-var';
 }
 
@@ -90,15 +100,19 @@ export function setSessionCookie(res: Response, userId: string) {
     `${COOKIE_NAME}=${encodeURIComponent(token)}`,
     'Path=/',
     'HttpOnly',
-    'SameSite=' + (isProduction ? 'None' : 'Lax'),
     `Max-Age=${Math.floor(SESSION_TTL_MS / 1000)}`,
   ];
 
+  // Only set SameSite=None and Secure in production when HTTPS is available
   if (isProduction) {
+    attributes.push('SameSite=None');
     attributes.push('Secure');
+  } else {
+    attributes.push('SameSite=Lax');
   }
 
   res.setHeader('Set-Cookie', attributes.join('; '));
+  console.log('Session cookie set for user:', userId, 'Production:', isProduction);
   return token;
 }
 
@@ -108,15 +122,19 @@ export function clearSessionCookie(res: Response) {
     `${COOKIE_NAME}=`,
     'Path=/',
     'HttpOnly',
-    'SameSite=' + (isProduction ? 'None' : 'Lax'),
     'Max-Age=0',
   ];
 
+  // Match the SameSite and Secure settings from setSessionCookie
   if (isProduction) {
+    attributes.push('SameSite=None');
     attributes.push('Secure');
+  } else {
+    attributes.push('SameSite=Lax');
   }
 
   res.setHeader('Set-Cookie', attributes.join('; '));
+  console.log('Session cookie cleared');
 }
 
 export function getTokenFromRequest(req: Request): string {

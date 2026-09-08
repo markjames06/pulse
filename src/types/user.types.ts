@@ -6,4 +6,5 @@ export interface UserProfile {
   avatarColor: string;
   createdAt: string;
   passwordHash?: string;
+  showTutorial?: boolean;
 }

@@ -43,14 +43,25 @@ export const RegisterAccountModal: React.FC<RegisterAccountModalProps> = ({
   if (!isOpen) return null;
 
   const validateForm = () => {
-    if (!email.trim()) return 'Enter your email address.';
+    if (!email.trim()) return 'Please enter your email address.';
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-      return 'Enter a valid email address, such as name@example.com.';
+      return 'Please enter a valid email address (e.g., name@example.com).';
     }
-    if (!password) return 'Enter your password.';
+    if (!password) return 'Please enter your password.';
+    if (password.length < 8) {
+      return 'Password must be at least 8 characters long.';
+    }
+    if (password.length > 72) {
+      return 'Password must be less than 72 characters.';
+    }
     if (mode === 'register') {
-      if (!displayName.trim()) return 'Enter your name.';
-      if (password.length < 8) return 'Your password must be at least 8 characters.';
+      if (!displayName.trim()) return 'Please enter your display name.';
+      if (displayName.trim().length < 2) {
+        return 'Display name must be at least 2 characters.';
+      }
+      if (displayName.trim().length > 50) {
+        return 'Display name must be less than 50 characters.';
+      }
     }
     return null;
   };
@@ -80,9 +91,23 @@ export const RegisterAccountModal: React.FC<RegisterAccountModalProps> = ({
       setDisplayName('');
       setEmail('');
       setPassword('');
+      setErrorMsg(null);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Something went wrong';
-      setErrorMsg(message === 'Invalid email or password' ? 'The email or password is incorrect.' : message);
+      
+      // Improve error messages for common authentication failures
+      let userFriendlyMessage = message;
+      if (message === 'Invalid email or password') {
+        userFriendlyMessage = 'Invalid email or password. Please check your credentials and try again.';
+      } else if (message === 'An account with this email already exists') {
+        userFriendlyMessage = 'An account with this email already exists. Please try logging in instead.';
+      } else if (message.includes('Network error')) {
+        userFriendlyMessage = 'Network error. Please check your connection and try again.';
+      } else if (message.includes('fetch')) {
+        userFriendlyMessage = 'Unable to connect to the server. Please try again later.';
+      }
+      
+      setErrorMsg(userFriendlyMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -166,7 +191,7 @@ export const RegisterAccountModal: React.FC<RegisterAccountModalProps> = ({
           <div className="relative">
             <input
               type={showPassword ? 'text' : 'password'}
-              placeholder={mode === 'register' ? 'Password (8+ characters)' : 'Password'}
+              placeholder={mode === 'register' ? 'Password (8-72 characters)' : 'Password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
