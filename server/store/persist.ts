@@ -145,8 +145,7 @@ let hydratePromise: Promise<void> | null = null;
 let persistQueue = Promise.resolve();
 
 export async function hydrateStore() {
-  if (hydratePromise) return hydratePromise;
-
+  // Force hydration on every call for serverless environments
   hydratePromise = (async () => {
     const config = redisConfig();
     if (!config) {
@@ -176,7 +175,6 @@ export async function hydrateStore() {
     } catch (error) {
       console.error('Failed to hydrate Pulse store from Redis:', error);
       console.error('Falling back to local file storage');
-      hydratePromise = null;
       
       // Fallback to local storage
       const snapshot = await readLocalSnapshot();

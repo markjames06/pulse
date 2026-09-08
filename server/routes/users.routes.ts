@@ -6,11 +6,31 @@ import { rateLimiter } from '../middleware/rateLimiter.js';
 import { sanitizeText } from '../utils/sanitizer.js';
 import { hashPassword, verifyPassword } from '../utils/password.js';
 import { publicUser, safeAvatarColor } from '../utils/publicUser.js';
-import { clearSessionCookie, setSessionCookie } from '../middleware/session.js';
+import { clearSessionCookie, setSessionCookie, getTokenFromRequest } from '../middleware/session.js';
 import { persistStore } from '../store/persist.js';
 import { Circle, UserProfile } from '../../src/types/index.js';
 
 export const usersRouter = Router();
+
+// Debug endpoint to check session and Redis status
+usersRouter.get('/api/debug/session', (req: Request, res: Response) => {
+  const token = getTokenFromRequest(req);
+  const userId = getAuthUserId(req);
+  
+  res.json({
+    environment: process.env.NODE_ENV,
+    isVercel: Boolean(process.env.VERCEL),
+    hasToken: !!token,
+    tokenLength: token?.length,
+    userId,
+    userExists: userId ? users.has(userId) : false,
+    totalUsers: users.size,
+    redisConfigured: !!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN),
+    sessionSecretConfigured: !!process.env.SESSION_SECRET,
+    cookieHeader: req.headers.cookie ? 'present' : 'missing',
+    cookiePreview: req.headers.cookie ? req.headers.cookie.substring(0, 100) : 'none'
+  });
+});
 
 // Emergency endpoint to reset all users (for testing purposes only)
 // This should be removed or protected in production

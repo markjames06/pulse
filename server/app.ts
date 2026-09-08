@@ -64,6 +64,11 @@ app.use(async (_req: Request, res: Response, next: NextFunction) => {
     });
   }
 
+  // Log current state for debugging
+  if (process.env.NODE_ENV === 'production') {
+    console.log('Request:', _req.method, _req.path, 'Users in store:', users.size);
+  }
+
   next();
 });
 
