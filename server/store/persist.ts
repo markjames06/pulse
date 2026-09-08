@@ -26,8 +26,9 @@ import {
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 
-const STORE_KEY = 'pulse:db:v2';
-const LOCAL_STORE_PATH = path.resolve(process.cwd(), 'data/pulse-store.json');
+const ENVIRONMENT = process.env.NODE_ENV || 'development';
+const STORE_KEY = `pulse:db:${ENVIRONMENT}:v2`;
+const LOCAL_STORE_PATH = path.resolve(process.cwd(), `data/pulse-store-${ENVIRONMENT}.json`);
 
 type StoreSnapshot = {
   users: UserProfile[];
@@ -46,7 +47,10 @@ type StoreSnapshot = {
 function redisConfig() {
   const url = process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-  if (!url || !token) return null;
+  if (!url || !token) {
+    console.warn('Redis configuration missing. Data will not persist in production.');
+    return null;
+  }
   return { url, token };
 }
 
