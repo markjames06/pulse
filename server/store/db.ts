@@ -60,19 +60,6 @@ export const moments = globalStore.__pulseStore.moments;
 export const pushSubscriptions = globalStore.__pulseStore.pushSubscriptions;
 export const upgradeInterests = globalStore.__pulseStore.upgradeInterests;
 
-// Add logging for user store operations
-const originalUsersSet = users.set;
-users.set = function(key: string, value: UserProfile) {
-  console.log('User added to store:', key, 'Email:', value.email);
-  return originalUsersSet.call(this, key, value);
-};
-
-const originalUsersDelete = users.delete;
-users.delete = function(key: string) {
-  console.log('User deleted from store:', key);
-  return originalUsersDelete.call(this, key);
-};
-
 export function seedData() {
   users.clear();
   locationShares.clear();

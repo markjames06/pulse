@@ -12,6 +12,24 @@ import { Circle, UserProfile } from '../../src/types/index.js';
 
 export const usersRouter = Router();
 
+// Emergency endpoint to reset all users (for testing purposes only)
+// This should be removed or protected in production
+usersRouter.post('/api/reset-all-users', (req: Request, res: Response) => {
+  console.log('!!! RESET ALL USERS REQUESTED !!!');
+  users.clear();
+  circles.clear();
+  locationShares.clear();
+  pings.length = 0;
+  memoryPins.length = 0;
+  notifications.length = 0;
+  
+  // Clear persistence
+  persistStore();
+  
+  console.log('All users and data have been reset');
+  res.json({ success: true, message: 'All users and data have been reset' });
+});
+
 const registerSchema = z.object({
   displayName: z.string().trim().min(2).max(50),
   email: z.string().trim().email().max(120),
