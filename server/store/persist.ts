@@ -27,8 +27,8 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 
 const ENVIRONMENT = process.env.NODE_ENV || 'development';
-const STORE_KEY = `pulse:db:${ENVIRONMENT}:v2`;
-const LOCAL_STORE_PATH = path.resolve(process.cwd(), `data/pulse-store-${ENVIRONMENT}.json`);
+const STORE_KEY = `pulse:db:v2`;
+const LOCAL_STORE_PATH = path.resolve(process.cwd(), `data/pulse-store.json`);
 
 type StoreSnapshot = {
   users: UserProfile[];

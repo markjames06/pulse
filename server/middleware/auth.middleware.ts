@@ -16,7 +16,6 @@ export function getAuthUserId(req: Request): string {
     return '';
   }
 
-  console.log('Authentication successful for user:', userId);
   return userId;
 }
 

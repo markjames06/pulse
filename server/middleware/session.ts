@@ -1,8 +1,7 @@
 import { createHmac, timingSafeEqual } from 'crypto';
 import { Request, Response } from 'express';
 
-const ENVIRONMENT = process.env.NODE_ENV || 'development';
-const COOKIE_NAME = `pulse_session_${ENVIRONMENT}`;
+const COOKIE_NAME = 'pulse_session';
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 function sessionSecret() {
@@ -79,15 +78,14 @@ export function readSessionUserId(token?: string | null): string {
   }
 }
 
-export function readCookie(req: Request, name?: string): string {
-  const cookieName = name || COOKIE_NAME;
+export function readCookie(req: Request, name = COOKIE_NAME): string {
   const header = req.headers.cookie;
   if (!header) return '';
 
   const parts = header.split(';');
   for (const part of parts) {
     const [rawKey, ...rawValue] = part.trim().split('=');
-    if (rawKey === cookieName) {
+    if (rawKey === name) {
       return decodeURIComponent(rawValue.join('='));
     }
   }
@@ -136,24 +134,6 @@ export function clearSessionCookie(res: Response) {
   }
 
   res.setHeader('Set-Cookie', attributes.join('; '));
-  
-  // Also clear the generic cookie for backward compatibility
-  const genericAttributes = [
-    'pulse_session=',
-    'Path=/',
-    'HttpOnly',
-    'Max-Age=0',
-  ];
-  if (isProduction) {
-    genericAttributes.push('SameSite=None');
-    genericAttributes.push('Secure');
-  } else {
-    genericAttributes.push('SameSite=Lax');
-  }
-  
-  const existingCookies = res.getHeader('Set-Cookie') as string[] || [];
-  res.setHeader('Set-Cookie', [...existingCookies, genericAttributes.join('; ')]);
-  
   console.log('Session cookie cleared');
 }
 
@@ -163,10 +143,5 @@ export function getTokenFromRequest(req: Request): string {
     return authHeader.slice(7).trim();
   }
 
-  // Try environment-specific cookie first, then fallback to generic one
-  let token = readCookie(req, COOKIE_NAME);
-  if (!token) {
-    token = readCookie(req, 'pulse_session');
-  }
-  return token;
+  return readCookie(req);
 }
