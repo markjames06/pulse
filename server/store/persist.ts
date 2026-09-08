@@ -150,7 +150,7 @@ export async function hydrateStore() {
   hydratePromise = (async () => {
     const config = redisConfig();
     if (!config) {
-      console.log('Using local file storage for Pulse data');
+      console.warn('Redis configuration missing. Using local file storage (data will not persist in production)');
       const snapshot = await readLocalSnapshot();
       if (snapshot) {
         console.log('Restored snapshot from local file');

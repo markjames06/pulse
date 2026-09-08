@@ -41,12 +41,16 @@ export function createSessionToken(userId: string) {
 }
 
 export function readSessionUserId(token?: string | null): string {
+  const isDev = process.env.NODE_ENV !== 'production';
+  
   if (!token || !token.includes('.')) {
+    if (isDev) console.log('Session validation failed: Invalid token format');
     return '';
   }
 
   const [payload, signature] = token.split('.');
   if (!payload || !signature) {
+    if (isDev) console.log('Session validation failed: Missing payload or signature');
     return '';
   }
 
@@ -55,6 +59,7 @@ export function readSessionUserId(token?: string | null): string {
   const valid = Buffer.from(expected);
 
   if (provided.length !== valid.length || !timingSafeEqual(provided, valid)) {
+    if (isDev) console.log('Session validation failed: Signature mismatch');
     return '';
   }
 
@@ -65,31 +70,44 @@ export function readSessionUserId(token?: string | null): string {
     };
 
     if (!data.sub || typeof data.exp !== 'number' || data.exp < Date.now()) {
+      if (isDev) console.log('Session validation failed: Invalid payload data or expired');
       return '';
     }
 
     if (!/^usr_[a-zA-Z0-9_]+$/.test(data.sub)) {
+      if (isDev) console.log('Session validation failed: Invalid user ID format');
       return '';
     }
 
+    if (isDev) console.log('Session validation successful for user:', data.sub);
     return data.sub;
-  } catch {
+  } catch (error) {
+    if (isDev) console.log('Session validation failed: JSON parse error', error);
     return '';
   }
 }
 
 export function readCookie(req: Request, name = COOKIE_NAME): string {
+  const isDev = process.env.NODE_ENV !== 'production';
   const header = req.headers.cookie;
-  if (!header) return '';
+  if (!header) {
+    if (isDev) console.log('Cookie reading failed: No cookie header present');
+    return '';
+  }
+
+  if (isDev) console.log('Reading cookie:', name, 'from header:', header.substring(0, 100) + '...');
 
   const parts = header.split(';');
   for (const part of parts) {
     const [rawKey, ...rawValue] = part.trim().split('=');
     if (rawKey === name) {
-      return decodeURIComponent(rawValue.join('='));
+      const value = decodeURIComponent(rawValue.join('='));
+      if (isDev) console.log('Cookie found:', name, 'value length:', value.length);
+      return value;
     }
   }
 
+  if (isDev) console.log('Cookie not found:', name, 'Available cookies:', parts.map(p => p.split('=')[0].trim()));
   return '';
 }
 
