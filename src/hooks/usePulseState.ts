@@ -365,14 +365,16 @@ export function usePulseState() {
     await api.deleteAccount();
     setCurrentUser(null);
     setIsRegisterRequired(true);
-    await loadData();
+    // Reload page to clear all cookies after account deletion
+    window.location.reload();
   };
 
   const handleLogout = async () => {
     await api.logoutUser();
     setCurrentUser(null);
     setIsRegisterRequired(true);
-    await loadData();
+    // Reload page to clear all cookies
+    window.location.reload();
   };
 
   const handleUpdateAccount = async (displayName: string, email: string) => {
@@ -383,7 +385,20 @@ export function usePulseState() {
   const handleRegisterSuccess = async (newUser: UserProfile) => {
     setCurrentUser(newUser);
     setIsRegisterRequired(false);
-    await loadData();
+    try {
+      await loadData();
+    } catch (err: any) {
+      console.error('Failed to load data after registration:', err);
+      // If we get a 401 error, reload the page to clear stale cookies
+      if (err.status === 401) {
+        console.error('Session mismatch after registration, reloading page to clear cookies');
+        // Clear all cookies
+        document.cookie.split(";").forEach((c) => {
+          document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+        });
+        window.location.reload();
+      }
+    }
   };
 
   return {

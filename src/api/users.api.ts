@@ -15,10 +15,16 @@ export const usersApi = {
       method: 'POST',
       body: JSON.stringify(data),
     }),
-  logoutUser: () =>
-    apiFetch<{ success: boolean }>('/api/auth/logout', {
-      method: 'POST',
-    }),
+  logoutUser: async () => {
+    try {
+      await apiFetch<{ success: boolean }>('/api/auth/logout', {
+        method: 'POST',
+      });
+    } catch (err) {
+      // Even if logout fails, we want to clear local state
+      console.error('Logout API call failed, but clearing local state anyway:', err);
+    }
+  },
   updateMe: (data: { displayName?: string; email?: string; avatarColor?: string }) =>
     apiFetch<UserProfile>('/api/auth/me', {
       method: 'PUT',
